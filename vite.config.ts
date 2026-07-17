@@ -1,0 +1,10 @@
+import { defineConfig } from 'vite';
+
+// base: './' keeps asset paths relative, so the built game works both at a
+// domain root and in a GitHub Pages subfolder without extra config.
+export default defineConfig({
+  base: './',
+  server: {
+    open: true,
+  },
+});

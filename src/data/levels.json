@@ -1,0 +1,29 @@
+{
+  "$schema-note": "Difficulty ladders per game + shared progression numbers. The game builds rounds by picking items from items.json that satisfy the current level. See design/design.md §5.3 and §6.2.",
+
+  "progression": {
+    "roundsPerSet": 3,
+    "stepUpStreak": 3,
+    "stepDownStruggles": 3,
+    "startLevel": 1
+  },
+
+  "listen_and_tap": [
+    { "level": 1, "choices": 2, "distractorCategory": "any" },
+    { "level": 2, "choices": 3, "distractorCategory": "any" },
+    { "level": 3, "choices": 4, "distractorCategory": "any" },
+    { "level": 4, "choices": 4, "distractorCategory": "same" }
+  ],
+
+  "odd_one_out": [
+    { "level": 1, "total": 3, "oddness": "far" },
+    { "level": 2, "total": 4, "oddness": "far" },
+    { "level": 3, "total": 4, "oddness": "near" }
+  ],
+
+  "memory_pairs": [
+    { "level": 1, "pairs": 2, "matchType": "identical" },
+    { "level": 2, "pairs": 3, "matchType": "identical" },
+    { "level": 3, "pairs": 4, "matchType": "identical" }
+  ]
+}
