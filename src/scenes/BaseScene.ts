@@ -40,6 +40,11 @@ export class BaseScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off('resize', this.fitCamera, this);
     });
+
+    // Dev-only: record the active scene so tests can verify navigation.
+    if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) {
+      (window as unknown as { __scene: string }).__scene = this.scene.key;
+    }
   }
 
   // Shared reward beat: a spinning star, then a pause, then onComplete.
