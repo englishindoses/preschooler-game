@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH } from './BaseScene';
 import { unlockAudio } from '../core/audio';
 
@@ -30,18 +29,17 @@ export class MenuScene extends BaseScene {
   private makeButton(x: number, y: number, label: string, colour: number, sceneKey: string): void {
     const w = 560;
     const h = 130;
-    const rect = this.add.rectangle(0, 0, w, h, colour).setStrokeStyle(6, 0xffffff);
-    const text = this.add
-      .text(0, 0, label, { fontFamily: 'sans-serif', fontSize: '48px', color: '#ffffff' })
+    // The rectangle itself is the tap target — its own hit area lines up under a
+    // zoomed/rotated camera, unlike a Container hit area.
+    const rect = this.add
+      .rectangle(x, y, w, h, colour)
+      .setStrokeStyle(6, 0xffffff)
+      .setInteractive({ useHandCursor: true });
+    this.add
+      .text(x, y, label, { fontFamily: 'sans-serif', fontSize: '48px', color: '#ffffff' })
       .setOrigin(0.5);
 
-    const button = this.add.container(x, y, [rect, text]);
-    button.setSize(w, h);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h),
-      Phaser.Geom.Rectangle.Contains,
-    );
-    button.on('pointerdown', () => {
+    rect.on('pointerdown', () => {
       unlockAudio();
       this.scene.start(sceneKey);
     });

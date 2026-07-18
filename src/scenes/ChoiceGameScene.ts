@@ -6,6 +6,15 @@ import { speak } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
+// A placeholder card: the rectangle is the tap target (its own hit area lines up
+// under a zoomed/rotated camera — a Container hit area does not), the label sits
+// on top, and they tween together as a pair.
+interface Card {
+  rect: Phaser.GameObjects.Rectangle;
+  label: Phaser.GameObjects.Text;
+  item: Item;
+}
+
 // Everything a single round needs. A game supplies this via planRound().
 export interface RoundPlan {
   items: Item[]; // cards to show, already in the order they should appear
@@ -26,7 +35,7 @@ export abstract class ChoiceGameScene extends BaseScene {
   protected abstract planRound(levelIndex: number): RoundPlan;
 
   private roundIndex = 0;
-  private cards: Phaser.GameObjects.Container[] = [];
+  private cards: Card[] = [];
   private plan!: RoundPlan;
   private wrongCount = 0;
   private neededHighlight = false;
@@ -117,11 +126,14 @@ export abstract class ChoiceGameScene extends BaseScene {
     });
   }
 
-  private makeCard(item: Item, x: number, y: number, size: number): Phaser.GameObjects.Container {
+  private makeCard(item: Item, x: number, y: number, size: number): Card {
     const colour = CATEGORY_COLOUR[item.category] ?? 0xcccccc;
-    const rect = this.add.rectangle(0, 0, size, size, colour).setStrokeStyle(6, 0xffffff);
+    const rect = this.add
+      .rectangle(x, y, size, size, colour)
+      .setStrokeStyle(6, 0xffffff)
+      .setInteractive({ useHandCursor: true });
     const label = this.add
-      .text(0, 0, item.word, {
+      .text(x, y, item.word, {
         fontFamily: 'sans-serif',
         fontSize: '40px',
         color: '#ffffff',
@@ -129,42 +141,38 @@ export abstract class ChoiceGameScene extends BaseScene {
       })
       .setOrigin(0.5);
 
-    const card = this.add.container(x, y, [rect, label]);
-    card.setSize(size, size);
-    card.setData('item', item);
-    card.setInteractive(
-      new Phaser.Geom.Rectangle(-size / 2, -size / 2, size, size),
-      Phaser.Geom.Rectangle.Contains,
-    );
-    card.on('pointerdown', () => this.onCardTap(card));
+    const card: Card = { rect, label, item };
+    rect.on('pointerdown', () => this.onCardTap(card));
     return card;
   }
 
   private clearCards(): void {
-    this.cards.forEach((c) => c.destroy());
+    this.cards.forEach((c) => {
+      c.rect.destroy();
+      c.label.destroy();
+    });
     this.cards = [];
   }
 
   // --- Answer handling ------------------------------------------------------
 
-  private onCardTap(card: Phaser.GameObjects.Container): void {
+  private onCardTap(card: Card): void {
     if (this.inputLocked) return;
-    const item = card.getData('item') as Item;
-    if (item.id === this.plan.target.id) {
+    if (card.item.id === this.plan.target.id) {
       this.handleCorrect(card);
     } else {
       this.handleWrong(card);
     }
   }
 
-  private handleCorrect(card: Phaser.GameObjects.Container): void {
+  private handleCorrect(card: Card): void {
     this.inputLocked = true;
     const firstTry = this.wrongCount === 0;
     this.mascot.setText('🎉');
     speak(this.plan.successLine);
 
     this.tweens.add({
-      targets: card,
+      targets: [card.rect, card.label],
       scale: 1.18,
       duration: 180,
       yoyo: true,
@@ -182,30 +190,31 @@ export abstract class ChoiceGameScene extends BaseScene {
     });
   }
 
-  private handleWrong(card: Phaser.GameObjects.Container): void {
+  private handleWrong(card: Card): void {
     this.wrongCount += 1;
     this.mascot.setText('🤔');
     speak('Hmm, try again!');
 
     this.tweens.add({
-      targets: card,
+      targets: [card.rect, card.label],
       angle: { from: -7, to: 7 },
       duration: 80,
       yoyo: true,
       repeat: 2,
-      onComplete: () => card.setAngle(0),
+      onComplete: () => {
+        card.rect.setAngle(0);
+        card.label.setAngle(0);
+      },
     });
     this.time.delayedCall(700, () => this.mascot.setText('🦒'));
 
     // After a 2nd miss, scaffold: pulse the correct answer so the child succeeds.
     if (this.wrongCount >= 2 && !this.neededHighlight) {
       this.neededHighlight = true;
-      const targetCard = this.cards.find(
-        (c) => (c.getData('item') as Item).id === this.plan.target.id,
-      );
-      if (targetCard) {
+      const target = this.cards.find((c) => c.item.id === this.plan.target.id);
+      if (target) {
         this.tweens.add({
-          targets: targetCard,
+          targets: [target.rect, target.label],
           scale: 1.12,
           duration: 500,
           yoyo: true,
@@ -241,18 +250,23 @@ export abstract class ChoiceGameScene extends BaseScene {
         target: (this.plan as RoundPlan | undefined)?.target.id ?? null,
         targetCategory: (this.plan as RoundPlan | undefined)?.target.category ?? null,
         cards: this.cards.length,
-        items: this.cards.map((c) => {
-          const it = c.getData('item') as Item;
-          return { id: it.id, category: it.category };
-        }),
+        items: this.cards.map((c) => ({ id: c.item.id, category: c.item.category })),
         locked: this.inputLocked,
       }),
+      geom: () =>
+        this.cards.map((c) => ({
+          id: c.item.id,
+          x: c.rect.x,
+          y: c.rect.y,
+          w: c.rect.width,
+          h: c.rect.height,
+        })),
       tapCorrect: () => {
-        const c = this.cards.find((card) => (card.getData('item') as Item).id === this.plan.target.id);
+        const c = this.cards.find((card) => card.item.id === this.plan.target.id);
         if (c) this.onCardTap(c);
       },
       tapWrong: () => {
-        const c = this.cards.find((card) => (card.getData('item') as Item).id !== this.plan.target.id);
+        const c = this.cards.find((card) => card.item.id !== this.plan.target.id);
         if (c) this.onCardTap(c);
       },
     };
