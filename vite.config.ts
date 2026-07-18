@@ -7,4 +7,11 @@ export default defineConfig({
   server: {
     open: true,
   },
+  build: {
+    // Output the finished, browser-ready files into docs/ so GitHub Pages can
+    // serve them directly (Pages set to "deploy from branch: main /docs").
+    // GitHub only hosts these built files — no build happens on GitHub.
+    outDir: 'docs',
+    emptyOutDir: true,
+  },
 });
