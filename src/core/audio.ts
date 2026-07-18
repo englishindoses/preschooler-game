@@ -46,10 +46,25 @@ export function speak(text: string, onEnd?: () => void): void {
 const PRAISE = ['Yes!', 'Well done!', 'You did it!', 'Lovely!', 'Great!', 'Brilliant!'];
 const TRY_AGAIN = ['Hmm, try again!', 'Nearly!', 'Have another go!'];
 
+// Varied ways to ask the child to find an item (Listen & Tap), so it doesn't
+// always say the same thing. British English.
+const FIND_PROMPTS: Array<(word: string) => string> = [
+  (w) => `Find the ${w}!`,
+  (w) => `Where is the ${w}?`,
+  (w) => `Can you see the ${w}?`,
+  (w) => `Can you find the ${w}?`,
+  (w) => `Where's the ${w}?`,
+  (w) => `Show me the ${w}!`,
+];
+
 export function praise(): string {
   return PRAISE[Math.floor(Math.random() * PRAISE.length)];
 }
 
 export function tryAgain(): string {
   return TRY_AGAIN[Math.floor(Math.random() * TRY_AGAIN.length)];
+}
+
+export function findPrompt(word: string): string {
+  return FIND_PROMPTS[Math.floor(Math.random() * FIND_PROMPTS.length)](word);
 }

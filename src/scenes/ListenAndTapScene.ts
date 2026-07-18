@@ -7,7 +7,7 @@ import {
   pickItems,
   shuffle,
 } from '../core/content';
-import { praise } from '../core/audio';
+import { praise, findPrompt } from '../core/audio';
 import type { Item } from '../data/types';
 
 // Game #1 — Listen & Tap (design/design.md §7). Hear a word, tap the matching
@@ -41,7 +41,7 @@ export class ListenAndTapScene extends ChoiceGameScene {
     return {
       items: shuffle([target, ...distractors]),
       target,
-      instruction: `Find the ${target.word}!`,
+      instruction: findPrompt(target.word),
       parentLabel: target.word,
       successLine: `${praise()} The ${target.word}!`,
     };

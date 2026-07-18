@@ -251,6 +251,7 @@ export abstract class ChoiceGameScene extends BaseScene {
         round: this.roundIndex,
         target: (this.plan as RoundPlan | undefined)?.target.id ?? null,
         targetCategory: (this.plan as RoundPlan | undefined)?.target.category ?? null,
+        instruction: (this.plan as RoundPlan | undefined)?.instruction ?? null,
         cards: this.cards.length,
         items: this.cards.map((c) => ({ id: c.item.id, category: c.item.category })),
         locked: this.inputLocked,
