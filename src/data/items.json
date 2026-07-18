@@ -5,7 +5,7 @@
     { "id": "horse",    "word": "horse",    "image": "assets/images/items/horse.png",    "wordAudio": "assets/audio/words/horse.mp3",    "sound": "assets/audio/sounds/horse.mp3",    "category": "farm_animal" },
     { "id": "sheep",    "word": "sheep",    "image": "assets/images/items/sheep.png",    "wordAudio": "assets/audio/words/sheep.mp3",    "sound": "assets/audio/sounds/sheep.mp3",    "category": "farm_animal" },
     { "id": "pig",      "word": "pig",      "image": "assets/images/items/pig.png",      "wordAudio": "assets/audio/words/pig.mp3",      "sound": "assets/audio/sounds/pig.mp3",      "category": "farm_animal" },
-    { "id": "hen",      "word": "hen",      "image": "assets/images/items/hen.png",      "wordAudio": "assets/audio/words/hen.mp3",      "sound": "assets/audio/sounds/hen.mp3",      "category": "farm_animal" },
+    { "id": "chicken",  "word": "chicken",  "image": "assets/images/items/chicken.png",  "wordAudio": "assets/audio/words/chicken.mp3",  "sound": "assets/audio/sounds/chicken.mp3",  "category": "farm_animal" },
     { "id": "duck",     "word": "duck",     "image": "assets/images/items/duck.png",     "wordAudio": "assets/audio/words/duck.mp3",     "sound": "assets/audio/sounds/duck.mp3",     "category": "farm_animal" },
     { "id": "goat",     "word": "goat",     "image": "assets/images/items/goat.png",     "wordAudio": "assets/audio/words/goat.mp3",     "sound": "assets/audio/sounds/goat.mp3",     "category": "farm_animal" },
     { "id": "dog",      "word": "dog",      "image": "assets/images/items/dog.png",      "wordAudio": "assets/audio/words/dog.mp3",      "sound": "assets/audio/sounds/dog.mp3",      "category": "farm_animal" },

@@ -12,6 +12,9 @@ has no fail states**. Learning through play: vocabulary, phonics, numeracy, reas
 ## Source of truth
 - **Build spec:** `design/design.md` — the authoritative doc to build from. Read it before
   writing any code. Game content/data: `src/data/items.json` and `src/data/levels.json`.
+- **`CHANGELOG.md`** — record notable changes here (newest first) as we make them.
+- **`TODO.md`** — what's next / outstanding; keep it current.
+- **Asset spec:** `design/asset-list.md`.
 - **Brainstorm/history only:** Notion —
   **https://app.notion.com/p/397b032be58581189e0dd51db49d2ada**
   (Page: "Preschool Game — Brainstorm & Design"). Used for early brainstorm and decisions;

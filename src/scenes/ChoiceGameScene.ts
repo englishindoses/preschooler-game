@@ -6,12 +6,13 @@ import { speak } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
-// A placeholder card: the rectangle is the tap target (its own hit area lines up
-// under a zoomed/rotated camera — a Container hit area does not), the label sits
-// on top, and they tween together as a pair.
+// A card is either the real picture (once its image is added) or a coloured
+// placeholder square with the word. `hit` is the tap target (a leaf object, so
+// its hit area lines up under a zoomed/rotated camera); `parts` are all the
+// visual pieces, tweened and destroyed together.
 interface Card {
-  rect: Phaser.GameObjects.Rectangle;
-  label: Phaser.GameObjects.Text;
+  hit: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
+  parts: Array<Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text>;
   item: Item;
 }
 
@@ -127,6 +128,16 @@ export abstract class ChoiceGameScene extends BaseScene {
   }
 
   private makeCard(item: Item, x: number, y: number, size: number): Card {
+    // Real picture if we have it; otherwise a coloured placeholder + word.
+    if (this.textures.exists(item.id)) {
+      const img = this.add.image(x, y, item.id);
+      img.setScale(size / Math.max(img.width, img.height));
+      img.setInteractive({ useHandCursor: true });
+      const card: Card = { hit: img, parts: [img], item };
+      img.on('pointerdown', () => this.onCardTap(card));
+      return card;
+    }
+
     const colour = CATEGORY_COLOUR[item.category] ?? 0xcccccc;
     const rect = this.add
       .rectangle(x, y, size, size, colour)
@@ -141,16 +152,13 @@ export abstract class ChoiceGameScene extends BaseScene {
       })
       .setOrigin(0.5);
 
-    const card: Card = { rect, label, item };
+    const card: Card = { hit: rect, parts: [rect, label], item };
     rect.on('pointerdown', () => this.onCardTap(card));
     return card;
   }
 
   private clearCards(): void {
-    this.cards.forEach((c) => {
-      c.rect.destroy();
-      c.label.destroy();
-    });
+    this.cards.forEach((c) => c.parts.forEach((p) => p.destroy()));
     this.cards = [];
   }
 
@@ -170,10 +178,11 @@ export abstract class ChoiceGameScene extends BaseScene {
     const firstTry = this.wrongCount === 0;
     this.mascot.setText('🎉');
 
-    // Celebrate visually while the praise plays.
+    // Celebrate visually while the praise plays (relative scale so it works for
+    // both full-size placeholder squares and scaled-down images).
     this.tweens.add({
-      targets: [card.rect, card.label],
-      scale: 1.18,
+      targets: card.parts,
+      scale: '*=1.15',
       duration: 180,
       yoyo: true,
       ease: 'Quad.easeOut',
@@ -198,15 +207,12 @@ export abstract class ChoiceGameScene extends BaseScene {
     speak('Hmm, try again!');
 
     this.tweens.add({
-      targets: [card.rect, card.label],
+      targets: card.parts,
       angle: { from: -7, to: 7 },
       duration: 80,
       yoyo: true,
       repeat: 2,
-      onComplete: () => {
-        card.rect.setAngle(0);
-        card.label.setAngle(0);
-      },
+      onComplete: () => card.parts.forEach((p) => p.setAngle(0)),
     });
     this.time.delayedCall(700, () => this.mascot.setText('🦒'));
 
@@ -216,8 +222,8 @@ export abstract class ChoiceGameScene extends BaseScene {
       const target = this.cards.find((c) => c.item.id === this.plan.target.id);
       if (target) {
         this.tweens.add({
-          targets: [target.rect, target.label],
-          scale: 1.12,
+          targets: target.parts,
+          scale: '*=1.12',
           duration: 500,
           yoyo: true,
           repeat: -1,
@@ -259,10 +265,10 @@ export abstract class ChoiceGameScene extends BaseScene {
       geom: () =>
         this.cards.map((c) => ({
           id: c.item.id,
-          x: c.rect.x,
-          y: c.rect.y,
-          w: c.rect.width,
-          h: c.rect.height,
+          x: c.hit.x,
+          y: c.hit.y,
+          w: c.hit.displayWidth,
+          h: c.hit.displayHeight,
         })),
       tapCorrect: () => {
         const c = this.cards.find((card) => card.item.id === this.plan.target.id);

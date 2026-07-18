@@ -115,7 +115,7 @@ word clips from §2 (e.g. `find_the.mp3` then `cow.mp3`).
 
 | File name | Says |
 |---|---|
-| `find_the.mp3` | "Find the…" (followed by a word clip) |
+| `find_1.mp3` … `find_6.mp3` | Varied "find" prompts (spoken as full lines with the word, or as carriers): "Find the…", "Where is the…?", "Can you see the…?", "Can you find the…?", "Where's the…?", "Show me the…!" |
 | `which_different.mp3` | "Which one is different?" |
 | `find_pairs.mp3` | "Find the matching pairs!" |
 | `welcome.mp3` | Short friendly welcome, e.g. "Let's play!" |

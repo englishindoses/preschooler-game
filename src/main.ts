@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { PreloadScene } from './scenes/PreloadScene';
 import { MenuScene } from './scenes/MenuScene';
 import { ListenAndTapScene } from './scenes/ListenAndTapScene';
 import { OddOneOutScene } from './scenes/OddOneOutScene';
@@ -18,7 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: '100%',
     height: '100%',
   },
-  scene: [MenuScene, ListenAndTapScene, OddOneOutScene, MemoryScene],
+  scene: [PreloadScene, MenuScene, ListenAndTapScene, OddOneOutScene, MemoryScene],
 };
 
 new Phaser.Game(config);

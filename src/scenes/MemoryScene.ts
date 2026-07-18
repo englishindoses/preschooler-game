@@ -195,19 +195,21 @@ export class MemoryScene extends BaseScene {
   }
 }
 
-// A single flippable card, built from leaf objects (not a Container) so the tap
-// target lines up under a zoomed/rotated camera. A transparent rectangle on top
-// is the input target; the visible faces flip by scaling in x.
+// A single flippable card. The visible faces live in a container that we flip
+// by scaling in x (so a scaled-down picture keeps its fit). The tap target is a
+// separate transparent leaf rectangle, so input lines up under a zoomed/rotated
+// camera. Front face is the real picture if we have it, else a coloured square.
+type FrontPart = Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text;
+
 class MemoryCard {
   matched = false;
   faceUp = false;
 
+  private visual: Phaser.GameObjects.Container;
   private back: Phaser.GameObjects.Rectangle;
   private qMark: Phaser.GameObjects.Text;
-  private frontRect: Phaser.GameObjects.Rectangle;
-  private frontLabel: Phaser.GameObjects.Text;
+  private frontParts: FrontPart[];
   private hit: Phaser.GameObjects.Rectangle;
-  private parts: Phaser.GameObjects.GameObject[];
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -217,28 +219,37 @@ class MemoryCard {
     size: number,
     onTap: (card: MemoryCard) => void,
   ) {
-    this.back = scene.add.rectangle(x, y, size, size, 0x00897b).setStrokeStyle(6, 0xffffff);
+    this.back = scene.add.rectangle(0, 0, size, size, 0x00897b).setStrokeStyle(6, 0xffffff);
     this.qMark = scene.add
-      .text(x, y, '?', { fontFamily: 'sans-serif', fontSize: `${Math.round(size * 0.5)}px`, color: '#ffffff' })
+      .text(0, 0, '?', { fontFamily: 'sans-serif', fontSize: `${Math.round(size * 0.5)}px`, color: '#ffffff' })
       .setOrigin(0.5);
-    this.frontRect = scene.add
-      .rectangle(x, y, size, size, CATEGORY_COLOUR[item.category] ?? 0xcccccc)
-      .setStrokeStyle(6, 0xffffff)
-      .setVisible(false);
-    this.frontLabel = scene.add
-      .text(x, y, item.word, { fontFamily: 'sans-serif', fontSize: '34px', color: '#ffffff', align: 'center' })
-      .setOrigin(0.5)
-      .setVisible(false);
+
+    if (scene.textures.exists(item.id)) {
+      const img = scene.add.image(0, 0, item.id).setVisible(false);
+      img.setScale((size * 0.92) / Math.max(img.width, img.height));
+      this.frontParts = [img];
+    } else {
+      const rect = scene.add
+        .rectangle(0, 0, size, size, CATEGORY_COLOUR[item.category] ?? 0xcccccc)
+        .setStrokeStyle(6, 0xffffff)
+        .setVisible(false);
+      const label = scene.add
+        .text(0, 0, item.word, { fontFamily: 'sans-serif', fontSize: '34px', color: '#ffffff', align: 'center' })
+        .setOrigin(0.5)
+        .setVisible(false);
+      this.frontParts = [rect, label];
+    }
+
+    this.visual = scene.add.container(x, y, [this.back, this.qMark, ...this.frontParts]);
+
     // Transparent tap target on top (fill alpha 0, but visible so it gets input).
     this.hit = scene.add.rectangle(x, y, size, size, 0x000000, 0).setInteractive({ useHandCursor: true });
     this.hit.on('pointerdown', () => onTap(this));
-
-    this.parts = [this.back, this.qMark, this.frontRect, this.frontLabel, this.hit];
   }
 
   flip(toFront: boolean, onComplete?: () => void, delay = 0): void {
     this.scene.tweens.add({
-      targets: this.parts,
+      targets: this.visual,
       scaleX: 0,
       delay,
       duration: 130,
@@ -247,10 +258,9 @@ class MemoryCard {
         this.faceUp = toFront;
         this.back.setVisible(!toFront);
         this.qMark.setVisible(!toFront);
-        this.frontRect.setVisible(toFront);
-        this.frontLabel.setVisible(toFront);
+        this.frontParts.forEach((p) => p.setVisible(toFront));
         this.scene.tweens.add({
-          targets: this.parts,
+          targets: this.visual,
           scaleX: 1,
           duration: 130,
           ease: 'Quad.easeOut',
@@ -264,7 +274,7 @@ class MemoryCard {
     this.matched = true;
     this.hit.disableInteractive();
     this.scene.tweens.add({
-      targets: this.parts,
+      targets: this.visual,
       scale: { from: 1, to: 1.1 },
       duration: 200,
       yoyo: true,
@@ -273,6 +283,7 @@ class MemoryCard {
   }
 
   destroy(): void {
-    this.parts.forEach((p) => p.destroy());
+    this.visual.destroy();
+    this.hit.destroy();
   }
 }
