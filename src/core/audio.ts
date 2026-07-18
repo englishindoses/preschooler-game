@@ -11,16 +11,36 @@ export function unlockAudio(): void {
   unlocked = true;
 }
 
-export function speak(text: string): void {
-  if (!unlocked) return;
+// Speaks the text. If onEnd is given, it fires once when the line finishes (so
+// callers can wait for the audio before moving on). onEnd is always eventually
+// called — even if speech is unavailable or errors — so game flow never stalls.
+export function speak(text: string, onEnd?: () => void): void {
   const synth = window.speechSynthesis;
-  if (!synth) return;
+
+  let done = false;
+  const finish = (): void => {
+    if (done) return;
+    done = true;
+    onEnd?.();
+  };
+
+  if (!unlocked || !synth) {
+    // No speech available: fall back to a short readable delay so flow continues.
+    if (onEnd) window.setTimeout(finish, 700);
+    return;
+  }
+
   synth.cancel(); // stop any previous line so instructions don't overlap
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-GB';
   u.rate = 0.9;
   u.pitch = 1.15;
+  u.onend = finish;
+  u.onerror = finish;
   synth.speak(u);
+
+  // Safety net: some browsers don't reliably fire onend. Estimate a max length.
+  if (onEnd) window.setTimeout(finish, Math.min(6000, 900 + text.length * 75));
 }
 
 const PRAISE = ['Yes!', 'Well done!', 'You did it!', 'Lovely!', 'Great!', 'Brilliant!'];

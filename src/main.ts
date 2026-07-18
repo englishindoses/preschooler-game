@@ -3,22 +3,20 @@ import { MenuScene } from './scenes/MenuScene';
 import { ListenAndTapScene } from './scenes/ListenAndTapScene';
 import { OddOneOutScene } from './scenes/OddOneOutScene';
 import { MemoryScene } from './scenes/MemoryScene';
-import { BG_COLOUR, DESIGN_WIDTH, DESIGN_HEIGHT } from './scenes/BaseScene';
+import { BG_COLOUR } from './scenes/BaseScene';
 import { installFullscreenLock } from './core/fullscreen';
 
-// FIT mode: the fixed 1280x720 landscape design is scaled to fit the screen and
-// centred. The game is ALWAYS landscape and never rotates — turn the phone and
-// nothing re-arranges. It just scales to fit a phone, tablet or laptop. On a
-// portrait phone it shows as a smaller centred landscape area with margins.
+// RESIZE mode: the canvas always fills the whole screen. Each scene fits/rotates
+// its camera (see BaseScene) to render the 1280x720 landscape design landscape
+// from the first frame — filling the screen, no black bands.
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'game',
   backgroundColor: BG_COLOUR,
   scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: DESIGN_WIDTH,
-    height: DESIGN_HEIGHT,
+    mode: Phaser.Scale.RESIZE,
+    width: '100%',
+    height: '100%',
   },
   scene: [MenuScene, ListenAndTapScene, OddOneOutScene, MemoryScene],
 };

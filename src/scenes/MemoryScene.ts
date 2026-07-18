@@ -130,13 +130,17 @@ export class MemoryScene extends BaseScene {
 
   private resolvePair(first: MemoryCard, second: MemoryCard): void {
     if (first.item.id === second.item.id) {
-      speak(`${praise()} ${second.item.word}!`);
       first.markMatched();
       second.markMatched();
       this.matched += 1;
-      this.locked = false;
+      const line = `${praise()} ${second.item.word}!`;
       if (this.matched >= this.pairs) {
-        this.boardComplete();
+        // Board done: wait for the praise to finish before the reward beat.
+        speak(line, () => this.boardComplete());
+      } else {
+        // More pairs to go: praise plays while the child carries on.
+        speak(line);
+        this.locked = false;
       }
     } else {
       this.mismatches += 1;

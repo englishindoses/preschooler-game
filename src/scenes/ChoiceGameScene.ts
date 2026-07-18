@@ -169,24 +169,26 @@ export abstract class ChoiceGameScene extends BaseScene {
     this.inputLocked = true;
     const firstTry = this.wrongCount === 0;
     this.mascot.setText('🎉');
-    speak(this.plan.successLine);
 
+    // Celebrate visually while the praise plays.
     this.tweens.add({
       targets: [card.rect, card.label],
       scale: 1.18,
       duration: 180,
       yoyo: true,
       ease: 'Quad.easeOut',
-      onComplete: () => {
-        this.difficulty.recordRound(firstTry, this.neededHighlight);
-        this.mascot.setText('🦒');
-        this.roundIndex += 1;
-        if (this.roundIndex >= PROGRESSION.roundsPerSet) {
-          this.endSet();
-        } else {
-          this.nextRound();
-        }
-      },
+    });
+
+    // Advance only once the spoken praise has finished, so it's never cut off.
+    speak(this.plan.successLine, () => {
+      this.difficulty.recordRound(firstTry, this.neededHighlight);
+      this.mascot.setText('🦒');
+      this.roundIndex += 1;
+      if (this.roundIndex >= PROGRESSION.roundsPerSet) {
+        this.endSet();
+      } else {
+        this.nextRound();
+      }
     });
   }
 
