@@ -3,6 +3,28 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-19 — Words on screen, nicer star, animal sounds, parents area
+
+**Added**
+- **Big written word** centred at the top of every game, so the child links the
+  word to the picture. Listen & Tap shows it from the start; Odd One Out reveals
+  it once the odd one is chosen; Memory shows a card's word as it's turned over.
+- **Parents area** (`ParentsScene`), reached from Home behind a **press-and-hold**
+  gate (~1.5s) so a child can't open it by accident. Holds a **per-game level
+  reset** button (Listen & Tap / Odd One Out / Memory) that clears that game's
+  saved difficulty back to level 1.
+- **Animal-sound playback** wired in: on a correct answer / matched pair, the
+  item's own sound clip plays before the praise. Needs the `.mp3` files in
+  `public/assets/audio/sounds/` (e.g. `cow.mp3`); silently skipped until they
+  exist. Browser voices can only speak words, not make animal noises, so these
+  must be real clips.
+
+**Changed**
+- **Reward star** is now a drawn 5-point gold star (was an emoji that rendered
+  clipped at the top); centred so it always fits.
+- **Wrong-answer feedback** now alternates between "Oops!", "Not quite!" and
+  "Try again!" (was a fixed "Hmm, try again!").
+
 ## 2026-07-19 — Fix: taps only reached the top half on phones
 
 **Fixed**

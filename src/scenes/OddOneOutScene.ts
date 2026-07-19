@@ -33,6 +33,8 @@ const CATEGORY_NOUN: Record<string, string> = {
 export class OddOneOutScene extends ChoiceGameScene {
   protected storageKey = 'pg.level.odd_one_out';
   protected levelCount = ODD_LEVELS.length;
+  // The word appears only after the child picks the odd one (design brief).
+  protected revealWordAtStart = false;
 
   constructor() {
     super('OddOneOut');

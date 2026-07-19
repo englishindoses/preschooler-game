@@ -47,11 +47,15 @@ export class BaseScene extends Phaser.Scene {
     }
   }
 
-  // Shared reward beat: a spinning star, then a pause, then onComplete.
+  // Shared reward beat: a spinning gold star, then a pause, then onComplete.
+  // Drawn as a real 5-point star shape (not an emoji, which rendered clipped at
+  // the top and looked different across devices), centred so it always fits.
   protected showStar(onComplete: () => void): void {
+    const cx = DESIGN_WIDTH / 2;
+    const cy = DESIGN_HEIGHT / 2;
     const star = this.add
-      .text(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, '⭐', { fontSize: '160px' })
-      .setOrigin(0.5)
+      .star(cx, cy, 5, 78, 160, 0xffd23f)
+      .setStrokeStyle(10, 0xf5a623)
       .setScale(0);
     this.tweens.add({
       targets: star,

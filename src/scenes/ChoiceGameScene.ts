@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { PROGRESSION } from '../core/content';
 import { Difficulty } from '../core/difficulty';
-import { speak } from '../core/audio';
+import { speak, tryAgain, playSound } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
@@ -35,6 +35,11 @@ export abstract class ChoiceGameScene extends BaseScene {
   protected abstract levelCount: number;
   protected abstract planRound(levelIndex: number): RoundPlan;
 
+  // Whether the big written word shows from the start of the round (Listen &
+  // Tap — the child is hunting for that word) or only after they answer
+  // correctly (Odd One Out — revealing the odd one's name teaches it).
+  protected revealWordAtStart = true;
+
   private roundIndex = 0;
   private cards: Card[] = [];
   private plan!: RoundPlan;
@@ -44,6 +49,7 @@ export abstract class ChoiceGameScene extends BaseScene {
 
   private mascot!: Phaser.GameObjects.Text;
   private wordLabel!: Phaser.GameObjects.Text;
+  private bigWord!: Phaser.GameObjects.Text;
   private levelText!: Phaser.GameObjects.Text;
 
   create(): void {
@@ -74,6 +80,16 @@ export abstract class ChoiceGameScene extends BaseScene {
       .setInteractive({ useHandCursor: true });
     replay.on('pointerdown', () => this.sayInstruction());
 
+    // Big written word, centred at the top, so the child links word to picture.
+    this.bigWord = this.add
+      .text(DESIGN_WIDTH / 2, 64, '', {
+        fontFamily: 'sans-serif',
+        fontSize: '80px',
+        fontStyle: 'bold',
+        color: '#2b2b2b',
+      })
+      .setOrigin(0.5);
+
     // Dev-only readout of the current level so we can watch difficulty adapt.
     this.levelText = this.add
       .text(20, DESIGN_HEIGHT - 20, '', {
@@ -103,6 +119,7 @@ export abstract class ChoiceGameScene extends BaseScene {
 
     this.layoutCards(this.plan.items);
     this.wordLabel.setText(this.plan.parentLabel);
+    this.bigWord.setText(this.revealWordAtStart ? this.plan.target.word : '');
     this.inputLocked = false;
     this.sayInstruction();
   }
@@ -177,6 +194,9 @@ export abstract class ChoiceGameScene extends BaseScene {
     this.inputLocked = true;
     const firstTry = this.wrongCount === 0;
     this.mascot.setText('🎉');
+    // Reveal the word (Odd One Out had it hidden until now) so it's on screen
+    // as the child hears it named.
+    this.bigWord.setText(this.plan.target.word);
 
     // Celebrate visually while the praise plays (relative scale so it works for
     // both full-size placeholder squares and scaled-down images).
@@ -188,23 +208,26 @@ export abstract class ChoiceGameScene extends BaseScene {
       ease: 'Quad.easeOut',
     });
 
-    // Advance only once the spoken praise has finished, so it's never cut off.
-    speak(this.plan.successLine, () => {
-      this.difficulty.recordRound(firstTry, this.neededHighlight);
-      this.mascot.setText('🦒');
-      this.roundIndex += 1;
-      if (this.roundIndex >= PROGRESSION.roundsPerSet) {
-        this.endSet();
-      } else {
-        this.nextRound();
-      }
+    // Play the item's own sound (e.g. an animal noise) if it has one, then the
+    // spoken praise; advance only once that has finished so it's never cut off.
+    playSound(this.plan.target.sound, () => {
+      speak(this.plan.successLine, () => {
+        this.difficulty.recordRound(firstTry, this.neededHighlight);
+        this.mascot.setText('🦒');
+        this.roundIndex += 1;
+        if (this.roundIndex >= PROGRESSION.roundsPerSet) {
+          this.endSet();
+        } else {
+          this.nextRound();
+        }
+      });
     });
   }
 
   private handleWrong(card: Card): void {
     this.wrongCount += 1;
     this.mascot.setText('🤔');
-    speak('Hmm, try again!');
+    speak(tryAgain());
 
     this.tweens.add({
       targets: card.parts,

@@ -43,8 +43,37 @@ export function speak(text: string, onEnd?: () => void): void {
   if (onEnd) window.setTimeout(finish, Math.min(6000, 900 + text.length * 75));
 }
 
+// Plays a real recorded sound clip (e.g. an animal noise) from a file path.
+// Browser voices can only speak words, not make animal sounds, so these come
+// from clips in public/assets/audio/sounds/. If the file is missing or can't
+// play, it's silently skipped and onEnd still fires, so game flow never stalls.
+export function playSound(path: string | null, onEnd?: () => void): void {
+  if (!unlocked || !path) {
+    onEnd?.();
+    return;
+  }
+
+  let done = false;
+  const finish = (): void => {
+    if (done) return;
+    done = true;
+    onEnd?.();
+  };
+
+  try {
+    const audio = new Audio(path);
+    audio.onended = finish;
+    audio.onerror = finish;
+    audio.play().catch(finish); // e.g. file missing → skip, don't stall
+    // Safety net in case neither event fires.
+    window.setTimeout(finish, 4000);
+  } catch {
+    finish();
+  }
+}
+
 const PRAISE = ['Yes!', 'Well done!', 'You did it!', 'Lovely!', 'Great!', 'Brilliant!'];
-const TRY_AGAIN = ['Hmm, try again!', 'Nearly!', 'Have another go!'];
+const TRY_AGAIN = ['Oops!', 'Not quite!', 'Try again!'];
 
 // Varied ways to ask the child to find an item (Listen & Tap), so it doesn't
 // always say the same thing. British English.

@@ -1,4 +1,4 @@
-import { BaseScene, DESIGN_WIDTH } from './BaseScene';
+import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { unlockAudio } from '../core/audio';
 
 // TEMPORARY placeholder Home. The real Home is a farm scene with picture-based
@@ -24,6 +24,38 @@ export class MenuScene extends BaseScene {
     this.makeButton(DESIGN_WIDTH / 2, 280, 'Listen & Tap', 0x42a5f5, 'ListenAndTap');
     this.makeButton(DESIGN_WIDTH / 2, 440, 'Odd One Out', 0x8bc34a, 'OddOneOut');
     this.makeButton(DESIGN_WIDTH / 2, 600, 'Memory Pairs', 0xffa726, 'Memory');
+
+    this.makeGrownupsGate();
+  }
+
+  // Small corner entry to the parents area, behind a press-and-hold so a young
+  // child can't open it by tapping. A grown-up holds it for ~1.5s to enter.
+  private makeGrownupsGate(): void {
+    const HOLD_MS = 1500;
+    const x = DESIGN_WIDTH - 40;
+    const y = DESIGN_HEIGHT - 34;
+
+    const label = this.add
+      .text(x, y, '🔒 For grown-ups (hold)', {
+        fontFamily: 'sans-serif',
+        fontSize: '26px',
+        color: '#4a6a3a',
+      })
+      .setOrigin(1, 1)
+      .setInteractive({ useHandCursor: true });
+
+    let timer: Phaser.Time.TimerEvent | null = null;
+    const cancel = (): void => {
+      timer?.remove();
+      timer = null;
+      label.setText('🔒 For grown-ups (hold)');
+    };
+    label.on('pointerdown', () => {
+      label.setText('🔒 Keep holding…');
+      timer = this.time.delayedCall(HOLD_MS, () => this.scene.start('Parents'));
+    });
+    label.on('pointerup', cancel);
+    label.on('pointerout', cancel);
   }
 
   private makeButton(x: number, y: number, label: string, colour: number, sceneKey: string): void {

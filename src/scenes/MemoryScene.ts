@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { MEMORY_LEVELS, PROGRESSION, pickItems, shuffle } from '../core/content';
 import { Difficulty } from '../core/difficulty';
-import { speak, praise } from '../core/audio';
+import { speak, praise, tryAgain, playSound } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
@@ -20,6 +20,7 @@ export class MemoryScene extends BaseScene {
   private locked = true;
 
   private mascot!: Phaser.GameObjects.Text;
+  private bigWord!: Phaser.GameObjects.Text;
   private levelText!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -49,6 +50,17 @@ export class MemoryScene extends BaseScene {
       .setInteractive({ useHandCursor: true });
     replay.on('pointerdown', () => this.sayInstruction());
 
+    // Big written word, centred at the top; shows the word of a card as it's
+    // turned over, so the child links the picture to its name.
+    this.bigWord = this.add
+      .text(DESIGN_WIDTH / 2, 64, '', {
+        fontFamily: 'sans-serif',
+        fontSize: '80px',
+        fontStyle: 'bold',
+        color: '#2b2b2b',
+      })
+      .setOrigin(0.5);
+
     this.levelText = this.add
       .text(20, DESIGN_HEIGHT - 20, '', {
         fontFamily: 'sans-serif',
@@ -72,6 +84,7 @@ export class MemoryScene extends BaseScene {
 
     const level = MEMORY_LEVELS[this.difficulty.index];
     this.pairs = level.pairs;
+    this.bigWord.setText('');
     this.levelText.setText(`level ${level.level}  ·  ${this.pairs} pairs`);
 
     const chosen = pickItems(this.pairs);
@@ -115,6 +128,7 @@ export class MemoryScene extends BaseScene {
     if (this.locked || card.matched || card.faceUp) return;
 
     card.flip(true);
+    this.bigWord.setText(card.item.word); // name the card the child just turned
 
     if (!this.firstPick) {
       this.firstPick = card;
@@ -133,25 +147,30 @@ export class MemoryScene extends BaseScene {
       first.markMatched();
       second.markMatched();
       this.matched += 1;
+      this.bigWord.setText(second.item.word);
       const line = `${praise()} ${second.item.word}!`;
+      // Play the animal's own sound (if any) first, then the spoken praise.
       if (this.matched >= this.pairs) {
         // Board done: wait for the praise to finish before the reward beat.
-        speak(line, () => this.boardComplete());
+        playSound(second.item.sound, () => speak(line, () => this.boardComplete()));
       } else {
-        // More pairs to go: praise plays while the child carries on.
-        speak(line);
-        this.locked = false;
+        // More pairs to go: praise plays, then the child carries on.
+        playSound(second.item.sound, () => {
+          speak(line);
+          this.locked = false;
+        });
       }
     } else {
       this.mismatches += 1;
       this.mascot.setText('🤔');
-      speak('Not a pair. Try again!');
+      speak(tryAgain());
       // Leave both cards face-up for a beat (via the flip's built-in delay) so
       // the child can see them, then flip both back and re-enable input.
       const pause = 900;
       second.flip(false, undefined, pause);
       first.flip(false, () => {
         this.mascot.setText('🦒');
+        this.bigWord.setText('');
         this.locked = false;
       }, pause);
     }
