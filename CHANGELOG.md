@@ -3,6 +3,16 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-19 — Content: sloth added to the item set
+
+**Added**
+- **Sloth** wired into `items.json` as a `wild_animal` (`sloth.png` was already in the
+  items folder but unreferenced). No code change needed — games pick from `ITEMS` by
+  category, so it now appears across all three games. `sound: null` (sloths are
+  effectively silent); spoken-word audio path is `assets/audio/words/sloth.mp3` — falls
+  back to browser speech until that file is generated. Wild-animal pool is now 4 (lion,
+  elephant, monkey, sloth).
+
 ## 2026-07-18 — Fixes: tap accuracy + always-landscape orientation
 
 **Fixed**

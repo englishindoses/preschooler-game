@@ -14,6 +14,7 @@
     { "id": "lion",     "word": "lion",     "image": "assets/images/items/lion.png",     "wordAudio": "assets/audio/words/lion.mp3",     "sound": "assets/audio/sounds/lion.mp3",     "category": "wild_animal" },
     { "id": "elephant", "word": "elephant", "image": "assets/images/items/elephant.png", "wordAudio": "assets/audio/words/elephant.mp3", "sound": "assets/audio/sounds/elephant.mp3", "category": "wild_animal" },
     { "id": "monkey",   "word": "monkey",   "image": "assets/images/items/monkey.png",   "wordAudio": "assets/audio/words/monkey.mp3",   "sound": "assets/audio/sounds/monkey.mp3",   "category": "wild_animal" },
+    { "id": "sloth",    "word": "sloth",    "image": "assets/images/items/sloth.png",    "wordAudio": "assets/audio/words/sloth.mp3",    "sound": null,                                    "category": "wild_animal" },
     { "id": "tractor",  "word": "tractor",  "image": "assets/images/items/tractor.png",  "wordAudio": "assets/audio/words/tractor.mp3",  "sound": "assets/audio/sounds/tractor.mp3",  "category": "vehicle" },
     { "id": "car",      "word": "car",      "image": "assets/images/items/car.png",      "wordAudio": "assets/audio/words/car.mp3",      "sound": "assets/audio/sounds/car.mp3",      "category": "vehicle" },
     { "id": "bus",      "word": "bus",      "image": "assets/images/items/bus.png",      "wordAudio": "assets/audio/words/bus.mp3",      "sound": "assets/audio/sounds/bus.mp3",      "category": "vehicle" },
