@@ -46,6 +46,12 @@ function resizeToDevice(): void {
     game.canvas.style.width = `${w}px`;
     game.canvas.style.height = `${h}px`;
   }
+  // The drawing buffer is `ratio`× bigger than the canvas's on-screen (CSS)
+  // size. Without this, Phaser maps taps in buffer pixels while the finger is in
+  // CSS pixels, so touches only reach the top 1/ratio of the screen. refresh()
+  // recomputes the input scale from the now-correct canvas bounds, so taps land
+  // where they're seen.
+  game.scale.refresh();
 }
 
 window.addEventListener('resize', resizeToDevice);
