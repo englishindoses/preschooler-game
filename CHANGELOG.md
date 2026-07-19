@@ -3,6 +3,19 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-19 — Fix: taps only reached the top half on phones
+
+**Fixed**
+- **Tap targets were unreachable below the screen's middle** on high-DPI phones
+  (and offset upward everywhere). Cause: the drawing buffer is `pixelRatio`×
+  larger than the canvas's on-screen (CSS) size for crispness, but Phaser was
+  mapping taps in buffer pixels while the finger reports CSS pixels — so touches
+  only reached the top `1/ratio` of the world (the top half on a 2× phone).
+  Fix: call `game.scale.refresh()` in `resizeToDevice` after setting the canvas
+  CSS size, so the input scale is recomputed from the correct bounds. One change
+  in `main.ts` fixes every scene (home, all three games) at once — the fault was
+  the global input mapping, not any individual card's hit area.
+
 ## 2026-07-19 — Content: sloth added to the item set
 
 **Added**
