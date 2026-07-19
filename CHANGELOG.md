@@ -13,11 +13,11 @@ A running record of notable changes. **Newest first.** British English.
   gate (~1.5s) so a child can't open it by accident. Holds a **per-game level
   reset** button (Listen & Tap / Odd One Out / Memory) that clears that game's
   saved difficulty back to level 1.
-- **Animal-sound playback** wired in: on a correct answer / matched pair, the
-  item's own sound clip plays before the praise. Needs the `.mp3` files in
-  `public/assets/audio/sounds/` (e.g. `cow.mp3`); silently skipped until they
-  exist. Browser voices can only speak words, not make animal noises, so these
-  must be real clips.
+- **Animal / vehicle sounds** as spoken browser-voice placeholders (same stand-in
+  approach as the rest of the audio): on a correct answer / matched pair the voice
+  says the noise — "Moo!", "Woof!", "Vroom!" — before the praise. Map lives in
+  `src/core/audio.ts` (`SOUND_WORDS`); quiet animals and food make no sound. Swaps
+  for real recorded clips later.
 
 **Changed**
 - **Reward star** is now a drawn 5-point gold star (was an emoji that rendered

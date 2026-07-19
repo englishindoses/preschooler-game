@@ -43,33 +43,37 @@ export function speak(text: string, onEnd?: () => void): void {
   if (onEnd) window.setTimeout(finish, Math.min(6000, 900 + text.length * 75));
 }
 
-// Plays a real recorded sound clip (e.g. an animal noise) from a file path.
-// Browser voices can only speak words, not make animal sounds, so these come
-// from clips in public/assets/audio/sounds/. If the file is missing or can't
-// play, it's silently skipped and onEnd still fires, so game flow never stalls.
-export function playSound(path: string | null, onEnd?: () => void): void {
-  if (!unlocked || !path) {
+// Placeholder animal / vehicle sounds SPOKEN by the browser voice — the same
+// stand-in approach as the rest of the audio. The voice says the noise (e.g.
+// "Moo!"), which will be swapped for a real recorded clip later. Items not
+// listed here (quiet animals, food) make no sound.
+const SOUND_WORDS: Record<string, string> = {
+  cow: 'Moo!',
+  horse: 'Neigh!',
+  sheep: 'Baa!',
+  pig: 'Oink oink!',
+  chicken: 'Cluck cluck!',
+  duck: 'Quack quack!',
+  goat: 'Maa!',
+  dog: 'Woof woof!',
+  cat: 'Meow!',
+  lion: 'Roar!',
+  elephant: 'Pawoo!',
+  monkey: 'Ooh ooh, ah ah!',
+  tractor: 'Brrm brrm!',
+  car: 'Vroom!',
+  bus: 'Beep beep!',
+};
+
+// Speaks an item's placeholder sound if it has one, then fires onEnd. onEnd is
+// always eventually called (even when the item has no sound) so flow continues.
+export function speakSound(id: string, onEnd?: () => void): void {
+  const word = SOUND_WORDS[id];
+  if (!word) {
     onEnd?.();
     return;
   }
-
-  let done = false;
-  const finish = (): void => {
-    if (done) return;
-    done = true;
-    onEnd?.();
-  };
-
-  try {
-    const audio = new Audio(path);
-    audio.onended = finish;
-    audio.onerror = finish;
-    audio.play().catch(finish); // e.g. file missing → skip, don't stall
-    // Safety net in case neither event fires.
-    window.setTimeout(finish, 4000);
-  } catch {
-    finish();
-  }
+  speak(word, onEnd);
 }
 
 const PRAISE = ['Yes!', 'Well done!', 'You did it!', 'Lovely!', 'Great!', 'Brilliant!'];

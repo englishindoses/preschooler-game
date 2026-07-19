@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { PROGRESSION } from '../core/content';
 import { Difficulty } from '../core/difficulty';
-import { speak, tryAgain, playSound } from '../core/audio';
+import { speak, tryAgain, speakSound } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
@@ -208,9 +208,9 @@ export abstract class ChoiceGameScene extends BaseScene {
       ease: 'Quad.easeOut',
     });
 
-    // Play the item's own sound (e.g. an animal noise) if it has one, then the
+    // Say the item's own sound (e.g. an animal noise) if it has one, then the
     // spoken praise; advance only once that has finished so it's never cut off.
-    playSound(this.plan.target.sound, () => {
+    speakSound(this.plan.target.id, () => {
       speak(this.plan.successLine, () => {
         this.difficulty.recordRound(firstTry, this.neededHighlight);
         this.mascot.setText('🦒');

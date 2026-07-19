@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { MEMORY_LEVELS, PROGRESSION, pickItems, shuffle } from '../core/content';
 import { Difficulty } from '../core/difficulty';
-import { speak, praise, tryAgain, playSound } from '../core/audio';
+import { speak, praise, tryAgain, speakSound } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
@@ -149,13 +149,13 @@ export class MemoryScene extends BaseScene {
       this.matched += 1;
       this.bigWord.setText(second.item.word);
       const line = `${praise()} ${second.item.word}!`;
-      // Play the animal's own sound (if any) first, then the spoken praise.
+      // Say the animal's own sound (if any) first, then the spoken praise.
       if (this.matched >= this.pairs) {
         // Board done: wait for the praise to finish before the reward beat.
-        playSound(second.item.sound, () => speak(line, () => this.boardComplete()));
+        speakSound(second.item.id, () => speak(line, () => this.boardComplete()));
       } else {
         // More pairs to go: praise plays, then the child carries on.
-        playSound(second.item.sound, () => {
+        speakSound(second.item.id, () => {
           speak(line);
           this.locked = false;
         });
