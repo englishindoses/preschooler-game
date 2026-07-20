@@ -3,6 +3,28 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-20 — Listen & Tap becomes a "Find the…" hidden-object game
+
+**Changed**
+- **Listen & Tap is now a hunt.** Animals are scattered across a grassy scene,
+  each **partly hidden behind a bush** (enough shows to recognise, enough hides
+  to make it a search). Tap the wrong one → it **peeks out** while the voice says
+  "Oops!"; tap the right one → it **jumps out of the bush with a burst of stars**.
+  Bushes gently rustle. Aim: turn a too-easy naming task into something that
+  captures curiosity and challenges a confident child.
+- **More items as she improves.** Listen & Tap now ramps 3 → 4 → 5 → 6 scattered
+  animals, with a final level using **6 similar-category** animals (harder to
+  tell apart). Bushes/scatter are placeholders (drawn shapes) — a real bush image
+  can drop in later.
+- Shared `ChoiceGameScene` refactored to expose presentation hooks
+  (`buildBackground`, `layoutCards`, `onCorrectFeedback`, `onWrongFeedback`) so
+  Listen & Tap can restyle the round while Odd One Out keeps the tidy row and all
+  the round/difficulty/reward logic stays shared.
+
+**Added**
+- **Memory** boards open with a **2-second face-up peek** ("Remember where they
+  are!") before the cards flip down.
+
 ## 2026-07-19 — Words on screen, nicer star, animal sounds, parents area
 
 **Added**

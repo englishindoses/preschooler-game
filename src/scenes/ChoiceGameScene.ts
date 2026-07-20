@@ -9,11 +9,26 @@ import type { Item } from '../data/types';
 // A card is either the real picture (once its image is added) or a coloured
 // placeholder square with the word. `hit` is the tap target (a leaf object, so
 // its hit area lines up under a zoomed/rotated camera); `parts` are all the
-// visual pieces, tweened and destroyed together.
-interface Card {
+// visual pieces, tweened and destroyed together. `sprite`/`baseY` are optional,
+// used by presentations that animate one picture (e.g. Find It's peek/jump).
+export type CardPart =
+  | Phaser.GameObjects.Image
+  | Phaser.GameObjects.Rectangle
+  | Phaser.GameObjects.Text
+  | Phaser.GameObjects.Container;
+
+export type CardSprite =
+  | Phaser.GameObjects.Image
+  | Phaser.GameObjects.Rectangle
+  | Phaser.GameObjects.Container;
+
+export interface Card {
   hit: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
-  parts: Array<Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text>;
+  parts: CardPart[];
   item: Item;
+  sprite?: CardSprite; // the one picture Find It peeks/jumps
+  baseY?: number; // its resting y (peeking out of the bush)
+  riseBy?: number; // how far up it jumps when picked
 }
 
 // Everything a single round needs. A game supplies this via planRound().
@@ -41,8 +56,8 @@ export abstract class ChoiceGameScene extends BaseScene {
   protected revealWordAtStart = true;
 
   private roundIndex = 0;
-  private cards: Card[] = [];
-  private plan!: RoundPlan;
+  protected cards: Card[] = [];
+  protected plan!: RoundPlan;
   private wrongCount = 0;
   private neededHighlight = false;
   private inputLocked = true;
@@ -55,10 +70,15 @@ export abstract class ChoiceGameScene extends BaseScene {
   create(): void {
     super.create(); // fit/rotate camera for landscape
     this.difficulty = new Difficulty(this.levelCount, PROGRESSION, this.storageKey);
+    this.buildBackground(); // static scenery behind everything (optional)
     this.buildHud();
     this.startSet();
     this.installDevHooks();
   }
+
+  // Optional static background drawn once, behind the HUD and cards. Default is
+  // none; Find It (Listen & Tap) overrides this to paint the grassy scene.
+  protected buildBackground(): void {}
 
   // --- HUD ------------------------------------------------------------------
 
@@ -130,7 +150,9 @@ export abstract class ChoiceGameScene extends BaseScene {
 
   // --- Card layout ----------------------------------------------------------
 
-  private layoutCards(items: Item[]): void {
+  // Default presentation: a tidy centred row (used by Odd One Out). Find It
+  // overrides this to scatter the pictures and hide them behind bushes.
+  protected layoutCards(items: Item[]): void {
     const n = items.length;
     const size = n <= 2 ? 300 : n === 3 ? 260 : 220;
     const gap = 60;
@@ -144,7 +166,7 @@ export abstract class ChoiceGameScene extends BaseScene {
     });
   }
 
-  private makeCard(item: Item, x: number, y: number, size: number): Card {
+  protected makeCard(item: Item, x: number, y: number, size: number): Card {
     // Real picture if we have it; otherwise a coloured placeholder + word.
     if (this.textures.exists(item.id)) {
       const img = this.add.image(x, y, item.id);
@@ -181,13 +203,38 @@ export abstract class ChoiceGameScene extends BaseScene {
 
   // --- Answer handling ------------------------------------------------------
 
-  private onCardTap(card: Card): void {
+  protected onCardTap(card: Card): void {
     if (this.inputLocked) return;
     if (card.item.id === this.plan.target.id) {
       this.handleCorrect(card);
     } else {
       this.handleWrong(card);
     }
+  }
+
+  // Visual feedback for a correct / wrong tap. Default is a small pulse / shake;
+  // Find It overrides these to jump the animal out of the bush (with stars) or
+  // make a wrong pick peek out. Kept separate from the shared audio + round
+  // flow below so a subclass only changes the animation, not the logic.
+  protected onCorrectFeedback(card: Card): void {
+    this.tweens.add({
+      targets: card.parts,
+      scale: '*=1.15',
+      duration: 180,
+      yoyo: true,
+      ease: 'Quad.easeOut',
+    });
+  }
+
+  protected onWrongFeedback(card: Card): void {
+    this.tweens.add({
+      targets: card.parts,
+      angle: { from: -7, to: 7 },
+      duration: 80,
+      yoyo: true,
+      repeat: 2,
+      onComplete: () => card.parts.forEach((p) => p.setAngle(0)),
+    });
   }
 
   private handleCorrect(card: Card): void {
@@ -198,15 +245,7 @@ export abstract class ChoiceGameScene extends BaseScene {
     // as the child hears it named.
     this.bigWord.setText(this.plan.target.word);
 
-    // Celebrate visually while the praise plays (relative scale so it works for
-    // both full-size placeholder squares and scaled-down images).
-    this.tweens.add({
-      targets: card.parts,
-      scale: '*=1.15',
-      duration: 180,
-      yoyo: true,
-      ease: 'Quad.easeOut',
-    });
+    this.onCorrectFeedback(card);
 
     // Say the item's own sound (e.g. an animal noise) if it has one, then the
     // spoken praise; advance only once that has finished so it's never cut off.
@@ -229,14 +268,7 @@ export abstract class ChoiceGameScene extends BaseScene {
     this.mascot.setText('🤔');
     speak(tryAgain());
 
-    this.tweens.add({
-      targets: card.parts,
-      angle: { from: -7, to: 7 },
-      duration: 80,
-      yoyo: true,
-      repeat: 2,
-      onComplete: () => card.parts.forEach((p) => p.setAngle(0)),
-    });
+    this.onWrongFeedback(card);
     this.time.delayedCall(700, () => this.mascot.setText('🦒'));
 
     // After a 2nd miss, scaffold: pulse the correct answer so the child succeeds.
@@ -245,7 +277,7 @@ export abstract class ChoiceGameScene extends BaseScene {
       const target = this.cards.find((c) => c.item.id === this.plan.target.id);
       if (target) {
         this.tweens.add({
-          targets: target.parts,
+          targets: target.sprite ? [target.sprite] : target.parts,
           scale: '*=1.12',
           duration: 500,
           yoyo: true,

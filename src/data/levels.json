@@ -9,10 +9,11 @@
   },
 
   "listen_and_tap": [
-    { "level": 1, "choices": 2, "distractorCategory": "any" },
-    { "level": 2, "choices": 3, "distractorCategory": "any" },
-    { "level": 3, "choices": 4, "distractorCategory": "any" },
-    { "level": 4, "choices": 4, "distractorCategory": "same" }
+    { "level": 1, "choices": 3, "distractorCategory": "any" },
+    { "level": 2, "choices": 4, "distractorCategory": "any" },
+    { "level": 3, "choices": 5, "distractorCategory": "any" },
+    { "level": 4, "choices": 6, "distractorCategory": "any" },
+    { "level": 5, "choices": 6, "distractorCategory": "same" }
   ],
 
   "odd_one_out": [
