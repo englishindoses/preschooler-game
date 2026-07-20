@@ -71,4 +71,27 @@ export class BaseScene extends Phaser.Scene {
       },
     });
   }
+
+  // A quick outward burst of little stars at (x, y) — used to celebrate a
+  // correct answer / matched pair. Purely decorative; cleans itself up.
+  protected starBurst(x: number, y: number, count = 9): void {
+    for (let i = 0; i < count; i++) {
+      const star = this.add
+        .star(x, y, 5, 6, 15, 0xffd23f)
+        .setStrokeStyle(2, 0xf5a623)
+        .setDepth(50);
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+      const dist = 80 + Math.random() * 70;
+      this.tweens.add({
+        targets: star,
+        x: x + Math.cos(angle) * dist,
+        y: y + Math.sin(angle) * dist,
+        scale: { from: 1, to: 0 },
+        angle: 200,
+        duration: 700,
+        ease: 'Quad.easeOut',
+        onComplete: () => star.destroy(),
+      });
+    }
+  }
 }

@@ -168,7 +168,7 @@ export class ListenAndTapScene extends ChoiceGameScene {
     // Jump right out of the bush and stay up, with a little pop.
     this.tweens.add({ targets: sprite, y: topY, duration: 420, ease: 'Back.easeOut' });
     this.tweens.add({ targets: sprite, scale: '*=1.12', duration: 200, yoyo: true, ease: 'Quad.easeOut' });
-    this.starBurst(sprite.x, topY);
+    this.starBurst(sprite.x, topY); // shared BaseScene helper
   }
 
   protected onWrongFeedback(card: Card): void {
@@ -182,24 +182,5 @@ export class ListenAndTapScene extends ChoiceGameScene {
       yoyo: true,
       ease: 'Quad.easeOut',
     });
-  }
-
-  private starBurst(x: number, y: number): void {
-    const count = 9;
-    for (let i = 0; i < count; i++) {
-      const star = this.add.star(x, y, 5, 6, 15, 0xffd23f).setStrokeStyle(2, 0xf5a623).setDepth(6);
-      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
-      const dist = 90 + Math.random() * 70;
-      this.tweens.add({
-        targets: star,
-        x: x + Math.cos(angle) * dist,
-        y: y + Math.sin(angle) * dist,
-        scale: { from: 1, to: 0 },
-        angle: 200,
-        duration: 700,
-        ease: 'Quad.easeOut',
-        onComplete: () => star.destroy(),
-      });
-    }
   }
 }

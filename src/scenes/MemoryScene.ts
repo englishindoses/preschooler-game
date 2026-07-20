@@ -1,23 +1,58 @@
 import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
-import { MEMORY_LEVELS, PROGRESSION, pickItems, shuffle } from '../core/content';
-import { Difficulty } from '../core/difficulty';
-import { speak, praise, tryAgain, speakSound } from '../core/audio';
+import { pickItems, shuffle } from '../core/content';
+import { speak, praise, speakSound } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
-// Game #10 — Memory / Pairs (design/design.md §9). Flip cards to find matching
-// pairs. Different mechanic from the "tap the right picture" games, but reuses
-// the item set, mascot, difficulty engine and reward beat. Each completed board
-// is a round; boards grow from 2 pairs to 4 pairs as the child succeeds.
+// Game #10 — Memory / Pairs (design/design.md §9), rebuilt with a guided intro
+// level and a memory ladder.
+//
+//  Level 1 (guided): cards stay face-up. Tap a card — it's named and you're
+//    asked to find its partner. Right = celebrate + slide the pair aside; wrong
+//    = nothing. Board sequence 4, 4, 6, 6 cards, then on to Level 2.
+//  Level 2: 4 cards, shown face-up for 2s then flipped down. Wrong pairs flip
+//    back. 4 flips with no match triggers a "peek" (all unmatched shown 1s).
+//    Clear 5 sets → Level 3.
+//  Level 3: as Level 2 but the cards start face-down (no opening peek).
+//  Level 4: as Level 2 but 6 cards. Top level.
+//  Any memory level: too many misses in a set drops the next set a level.
+type Mode = 'guided' | 'memory';
+interface LevelConfig {
+  mode: Mode;
+  peek: boolean; // memory: show the board briefly before flipping down
+  boards?: number[]; // guided: the sequence of card counts
+  cards?: number; // memory: cards per set
+}
+
+const STORAGE_KEY = 'pg.level.memory_pairs';
+const MAX_LEVEL = 4;
+const MIN_MEMORY_LEVEL = 2; // step-down never drops back into the guided intro
+const SETS_TO_CLEAR = 5;
+const PEEK_AFTER_FLIPS = 4; // flips with no match → take a peek
+const STEP_DOWN_MISMATCHES = 4; // mismatches in a set → next set drops a level
+
+const LEVELS: Record<number, LevelConfig> = {
+  1: { mode: 'guided', peek: false, boards: [4, 4, 6, 6] },
+  2: { mode: 'memory', peek: true, cards: 4 },
+  3: { mode: 'memory', peek: false, cards: 4 },
+  4: { mode: 'memory', peek: true, cards: 6 },
+};
+
 export class MemoryScene extends BaseScene {
-  private difficulty!: Difficulty;
+  private level = 1;
+  private boardIndex = 0; // guided: position in the boards sequence
+  private setsCleared = 0; // memory: sets cleared at the current level
+
   private cards: MemoryCard[] = [];
   private firstPick: MemoryCard | null = null;
-  private pairs = 0;
-  private matched = 0;
-  private mismatches = 0;
   private locked = true;
+
+  private totalPairs = 0;
+  private matchedPairs = 0;
+  private matchesThisSet = 0;
+  private mismatchesThisSet = 0;
+  private flipsSinceMatch = 0;
 
   private mascot!: Phaser.GameObjects.Text;
   private bigWord!: Phaser.GameObjects.Text;
@@ -29,11 +64,26 @@ export class MemoryScene extends BaseScene {
 
   create(): void {
     super.create();
-    this.difficulty = new Difficulty(MEMORY_LEVELS.length, PROGRESSION, 'pg.level.memory_pairs');
+    this.loadLevel();
     this.buildHud();
-    this.newBoard();
+    this.newSet();
     this.installDevHooks();
   }
+
+  // --- Progression persistence ----------------------------------------------
+
+  private loadLevel(): void {
+    const saved = Number(localStorage.getItem(STORAGE_KEY));
+    this.level = Number.isInteger(saved) && saved >= 1 && saved <= MAX_LEVEL ? saved : 1;
+    this.boardIndex = 0;
+    this.setsCleared = 0;
+  }
+
+  private saveLevel(): void {
+    localStorage.setItem(STORAGE_KEY, String(this.level));
+  }
+
+  // --- HUD ------------------------------------------------------------------
 
   private buildHud(): void {
     const home = this.add
@@ -50,8 +100,6 @@ export class MemoryScene extends BaseScene {
       .setInteractive({ useHandCursor: true });
     replay.on('pointerdown', () => this.sayInstruction());
 
-    // Big written word, centred at the top; shows the word of a card as it's
-    // turned over, so the child links the picture to its name.
     this.bigWord = this.add
       .text(DESIGN_WIDTH / 2, 64, '', {
         fontFamily: 'sans-serif',
@@ -71,55 +119,78 @@ export class MemoryScene extends BaseScene {
   }
 
   private sayInstruction(): void {
-    speak('Find the matching pairs!');
+    const cfg = LEVELS[this.level];
+    if (cfg.mode === 'guided') {
+      if (this.firstPick) {
+        speak(`Where's the other ${this.firstPick.item.word}?`);
+      } else {
+        speak('Tap a card.');
+      }
+    } else {
+      speak('Can you find the pairs?');
+    }
   }
 
-  // --- Board ----------------------------------------------------------------
+  // --- Board setup ----------------------------------------------------------
 
-  private newBoard(): void {
+  private newSet(): void {
     this.clearCards();
     this.firstPick = null;
-    this.matched = 0;
-    this.mismatches = 0;
-
-    const level = MEMORY_LEVELS[this.difficulty.index];
-    this.pairs = level.pairs;
+    this.matchedPairs = 0;
+    this.matchesThisSet = 0;
+    this.mismatchesThisSet = 0;
+    this.flipsSinceMatch = 0;
     this.bigWord.setText('');
-    this.levelText.setText(`level ${level.level}  ·  ${this.pairs} pairs`);
 
-    const chosen = pickItems(this.pairs);
+    const cfg = LEVELS[this.level];
+    const cardCount = cfg.mode === 'guided' ? cfg.boards![this.boardIndex] : cfg.cards!;
+    this.totalPairs = cardCount / 2;
+
+    const progress =
+      cfg.mode === 'guided'
+        ? `board ${this.boardIndex + 1}/${cfg.boards!.length}`
+        : `set ${this.setsCleared + 1}/${SETS_TO_CLEAR}`;
+    this.levelText.setText(`level ${this.level} (${cfg.mode})  ·  ${progress}  ·  ${this.totalPairs} pairs`);
+
+    const chosen = pickItems(this.totalPairs);
     const deck = shuffle(chosen.flatMap((it) => [it, it]));
     this.layoutDeck(deck);
 
-    // Peek: show every card face-up for 2s so the child can study them, then
-    // flip them all face-down together. The hide uses each card's built-in flip
-    // tween delay (not a nested time.delayedCall, which is unreliable here).
-    this.locked = true;
-    speak('Remember where they are!');
-    this.cards.forEach((c) => c.reveal());
-    let pending = this.cards.length;
-    this.cards.forEach((c) =>
-      c.flip(false, () => {
-        pending -= 1;
-        if (pending === 0) {
-          this.locked = false;
-          this.sayInstruction();
-        }
-      }, 2000),
-    );
+    if (cfg.mode === 'guided') {
+      // Cards stay face-up; the child is guided to each partner.
+      this.cards.forEach((c) => c.reveal());
+      this.locked = false;
+      speak('Find the matching pairs. Tap a card!');
+    } else if (cfg.peek) {
+      // Show the board for 2s, then flip everything down together.
+      this.locked = true;
+      speak('Can you find the pairs?');
+      this.cards.forEach((c) => c.reveal());
+      let pending = this.cards.length;
+      this.cards.forEach((c) =>
+        c.flip(false, () => {
+          pending -= 1;
+          if (pending === 0) this.locked = false;
+        }, 2000),
+      );
+    } else {
+      // Start face-down straight away.
+      this.locked = false;
+      speak('Can you find the pairs?');
+    }
   }
 
   private layoutDeck(deck: Item[]): void {
     const rows = 2;
     const cols = deck.length / rows;
     const gap = 30;
-    const usableW = DESIGN_WIDTH - 280;
+    const usableW = DESIGN_WIDTH - 340; // leave room for the collected pairs
     const usableH = DESIGN_HEIGHT - 300;
     const size = Math.min((usableW - (cols - 1) * gap) / cols, (usableH - (rows - 1) * gap) / rows);
 
     const totalW = cols * size + (cols - 1) * gap;
     const totalH = rows * size + (rows - 1) * gap;
-    const startX = (DESIGN_WIDTH - totalW) / 2 + size / 2;
+    const startX = (DESIGN_WIDTH - 160 - totalW) / 2 + size / 2;
     const startY = 430 - totalH / 2 + size / 2;
 
     deck.forEach((item, i) => {
@@ -136,74 +207,176 @@ export class MemoryScene extends BaseScene {
     this.cards = [];
   }
 
-  // --- Turn logic -----------------------------------------------------------
+  // Resting place for a matched pair — a stack down the right-hand side, the two
+  // cards overlapping slightly.
+  private collectedSlot(pairIndex: number): { ax: number; bx: number; y: number; scale: number } {
+    const x = DESIGN_WIDTH - 110;
+    const y = 160 + pairIndex * 125;
+    return { ax: x - 26, bx: x + 26, y, scale: 0.42 };
+  }
+
+  // --- Tap handling ---------------------------------------------------------
 
   private onCardTap(card: MemoryCard): void {
-    if (this.locked || card.matched || card.faceUp) return;
+    if (this.locked) return;
+    if (LEVELS[this.level].mode === 'guided') {
+      this.tapGuided(card);
+    } else {
+      this.tapMemory(card);
+    }
+  }
+
+  private tapGuided(card: MemoryCard): void {
+    if (card.matched) return;
+
+    if (!this.firstPick) {
+      this.firstPick = card;
+      card.highlight(true);
+      this.bigWord.setText(card.item.word);
+      speak(`${card.item.word}! Where's the other ${card.item.word}?`);
+      return;
+    }
+
+    if (card === this.firstPick) return;
+
+    if (card.item.id === this.firstPick.item.id) {
+      const first = this.firstPick;
+      this.firstPick = null;
+      first.highlight(false);
+      this.onPairMatched(first, card);
+    }
+    // Wrong pick in guided mode: nothing happens (keep the current selection).
+  }
+
+  private tapMemory(card: MemoryCard): void {
+    if (card.matched || card.faceUp) return;
 
     card.flip(true);
-    this.bigWord.setText(card.item.word); // name the card the child just turned
+    this.bigWord.setText(card.item.word);
+    this.flipsSinceMatch += 1;
 
     if (!this.firstPick) {
       this.firstPick = card;
       return;
     }
 
-    // Second card of the pair chosen.
     this.locked = true;
     const first = this.firstPick;
+    const second = card;
     this.firstPick = null;
-    this.time.delayedCall(320, () => this.resolvePair(first, card));
+    this.time.delayedCall(350, () => this.resolveMemoryPair(first, second));
   }
 
-  private resolvePair(first: MemoryCard, second: MemoryCard): void {
+  private resolveMemoryPair(first: MemoryCard, second: MemoryCard): void {
     if (first.item.id === second.item.id) {
-      first.markMatched();
-      second.markMatched();
-      this.matched += 1;
-      this.bigWord.setText(second.item.word);
-      const line = `${praise()} ${second.item.word}!`;
-      // Say the animal's own sound (if any) first, then the spoken praise.
-      if (this.matched >= this.pairs) {
-        // Board done: wait for the praise to finish before the reward beat.
-        speakSound(second.item.id, () => speak(line, () => this.boardComplete()));
-      } else {
-        // More pairs to go: praise plays, then the child carries on.
-        speakSound(second.item.id, () => {
-          speak(line);
-          this.locked = false;
-        });
-      }
+      this.onPairMatched(first, second);
+      return;
+    }
+
+    this.mismatchesThisSet += 1;
+
+    if (this.flipsSinceMatch >= PEEK_AFTER_FLIPS) {
+      this.takeAPeek();
     } else {
-      this.mismatches += 1;
-      this.mascot.setText('🤔');
-      speak(tryAgain());
-      // Leave both cards face-up for a beat (via the flip's built-in delay) so
-      // the child can see them, then flip both back and re-enable input.
-      const pause = 900;
+      const pause = 800;
       second.flip(false, undefined, pause);
       first.flip(false, () => {
-        this.mascot.setText('🦒');
         this.bigWord.setText('');
         this.locked = false;
       }, pause);
     }
   }
 
-  private boardComplete(): void {
+  // All unmatched cards flash up for 1s, then flip back down. A gentle hint when
+  // the child is flipping without finding pairs.
+  private takeAPeek(): void {
     this.locked = true;
-    // Fewer mismatches = doing well. These map onto the shared difficulty
-    // engine's "first-try correct" (efficient) and "needed help" (struggled).
-    const efficient = this.mismatches <= this.pairs;
-    const struggled = this.mismatches >= this.pairs * 3;
-    this.difficulty.recordRound(efficient, struggled);
+    this.flipsSinceMatch = 0;
+    this.firstPick = null;
+    this.bigWord.setText('');
+    speak('Take a peek!');
 
+    const unmatched = this.cards.filter((c) => !c.matched);
+    unmatched.forEach((c) => c.reveal());
+    let pending = unmatched.length;
+    unmatched.forEach((c) =>
+      c.flip(false, () => {
+        pending -= 1;
+        if (pending === 0) this.locked = false;
+      }, 1000),
+    );
+  }
+
+  private onPairMatched(a: MemoryCard, b: MemoryCard): void {
+    this.locked = true;
+    this.matchedPairs += 1;
+    this.matchesThisSet += 1;
+    this.flipsSinceMatch = 0;
+
+    this.mascot.setText('🎉');
+    this.bigWord.setText(b.item.word);
+    this.starBurst(b.x, b.y);
+    speakSound(b.item.id, () => speak(`${praise()} ${b.item.word}!`));
+
+    const slot = this.collectedSlot(this.matchedPairs - 1);
+    let pending = 2;
+    const done = (): void => {
+      pending -= 1;
+      if (pending === 0) this.afterMatch();
+    };
+    a.collect(slot.ax, slot.y, slot.scale, done);
+    b.collect(slot.bx, slot.y, slot.scale, done);
+  }
+
+  private afterMatch(): void {
+    this.mascot.setText('🦒');
+    this.firstPick = null;
+    if (this.matchedPairs >= this.totalPairs) {
+      this.onSetComplete();
+    } else {
+      this.bigWord.setText('');
+      this.locked = false;
+    }
+  }
+
+  private onSetComplete(): void {
+    this.locked = true;
     this.mascot.setText('🎉');
     speak('Well done!');
     this.showStar(() => {
       this.mascot.setText('🦒');
-      this.newBoard();
+      this.advanceProgression();
+      this.newSet();
     });
+  }
+
+  private advanceProgression(): void {
+    const cfg = LEVELS[this.level];
+    if (cfg.mode === 'guided') {
+      this.boardIndex += 1;
+      if (this.boardIndex >= cfg.boards!.length) {
+        this.level = 2;
+        this.boardIndex = 0;
+        this.setsCleared = 0;
+        this.saveLevel();
+      }
+      return;
+    }
+
+    // Memory level. Too many misses this set → drop a level for the next set.
+    if (this.mismatchesThisSet >= STEP_DOWN_MISMATCHES && this.level > MIN_MEMORY_LEVEL) {
+      this.level -= 1;
+      this.setsCleared = 0;
+      this.saveLevel();
+      return;
+    }
+
+    this.setsCleared += 1;
+    if (this.setsCleared >= SETS_TO_CLEAR && this.level < MAX_LEVEL) {
+      this.level += 1;
+      this.setsCleared = 0;
+      this.saveLevel();
+    }
   }
 
   // --- Dev hooks (stripped from production) ---------------------------------
@@ -213,13 +386,17 @@ export class MemoryScene extends BaseScene {
     if (!isDev) return;
     (window as unknown as Record<string, unknown>).__game = {
       state: () => ({
-        level: this.difficulty.index + 1,
-        pairs: this.pairs,
-        matched: this.matched,
-        mismatches: this.mismatches,
+        level: this.level,
+        mode: LEVELS[this.level].mode,
+        boardIndex: this.boardIndex,
+        setsCleared: this.setsCleared,
+        totalPairs: this.totalPairs,
+        matchedPairs: this.matchedPairs,
+        mismatchesThisSet: this.mismatchesThisSet,
+        flipsSinceMatch: this.flipsSinceMatch,
         locked: this.locked,
       }),
-      cards: () => this.cards.map((c, i) => ({ i, id: c.item.id, matched: c.matched })),
+      cards: () => this.cards.map((c, i) => ({ i, id: c.item.id, matched: c.matched, faceUp: c.faceUp })),
       tap: (i: number) => {
         const c = this.cards[i];
         if (c) this.onCardTap(c);
@@ -228,10 +405,10 @@ export class MemoryScene extends BaseScene {
   }
 }
 
-// A single flippable card. The visible faces live in a container that we flip
-// by scaling in x (so a scaled-down picture keeps its fit). The tap target is a
-// separate transparent leaf rectangle, so input lines up under a zoomed/rotated
-// camera. Front face is the real picture if we have it, else a coloured square.
+// A single flippable card. Faces live in a container flipped by scaling in x; a
+// separate transparent leaf rectangle is the tap target so input lines up under
+// the zoomed camera. Front face is the real picture if we have it, else a
+// coloured square with the word.
 type FrontPart = Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text;
 
 class MemoryCard {
@@ -275,9 +452,16 @@ class MemoryCard {
 
     this.visual = scene.add.container(x, y, [this.back, this.qMark, ...this.frontParts]);
 
-    // Transparent tap target on top (fill alpha 0, but visible so it gets input).
     this.hit = scene.add.rectangle(x, y, size, size, 0x000000, 0).setInteractive({ useHandCursor: true });
     this.hit.on('pointerdown', () => onTap(this));
+  }
+
+  get x(): number {
+    return this.visual.x;
+  }
+
+  get y(): number {
+    return this.visual.y;
   }
 
   flip(toFront: boolean, onComplete?: () => void, delay = 0): void {
@@ -303,24 +487,46 @@ class MemoryCard {
     });
   }
 
-  // Instantly turn the card face-up with no animation (used for the opening
-  // peek, before the cards flip down together).
+  // Instantly turn face-up with no animation (opening peek / take-a-peek).
   reveal(): void {
     this.faceUp = true;
     this.back.setVisible(false);
     this.qMark.setVisible(false);
     this.frontParts.forEach((p) => p.setVisible(true));
+    this.visual.setScale(1);
   }
 
-  markMatched(): void {
+  // Guided-mode selection cue.
+  highlight(on: boolean): void {
+    this.scene.tweens.add({
+      targets: this.visual,
+      scale: on ? 1.08 : 1,
+      duration: 150,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  // A matched pair: disable the card and glide it to its resting spot with a
+  // little celebratory pop.
+  collect(x: number, y: number, scale: number, onDone?: () => void): void {
     this.matched = true;
     this.hit.disableInteractive();
     this.scene.tweens.add({
       targets: this.visual,
-      scale: { from: 1, to: 1.1 },
-      duration: 200,
+      scale: { from: 1, to: 1.15 },
+      duration: 160,
       yoyo: true,
       ease: 'Sine.easeInOut',
+    });
+    this.scene.tweens.add({
+      targets: this.visual,
+      x,
+      y,
+      scale,
+      delay: 180,
+      duration: 430,
+      ease: 'Quad.easeInOut',
+      onComplete: onDone,
     });
   }
 
