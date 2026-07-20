@@ -16,6 +16,11 @@ in `CHANGELOG.md`. British English.
 - [ ] More shortlist games (Category Sorting, Colour Sorting, Habitats, Patterns, Sounds,
       Initial Sounds) — see Notion section 9.
 
+## To review
+- [ ] **Volume (replay 🔊) button** — placement/behaviour across all games (top-right; collected
+      pairs were overlapping it — moved for now, but revisit the whole layout).
+- [ ] **Reset buttons** (parents area, per-game) — placement, wording and the press-and-hold gate.
+
 ## Known issues / notes
 - Placeholder voice uses the browser's speech; replaced by recorded clips later.
 - Nothing currently blocking.

@@ -210,8 +210,10 @@ export class MemoryScene extends BaseScene {
   // Resting place for a matched pair — a stack down the right-hand side, the two
   // cards overlapping slightly.
   private collectedSlot(pairIndex: number): { ax: number; bx: number; y: number; scale: number } {
+    // Down the right-hand side, starting below the volume (replay) button so the
+    // collected pairs never cover it.
     const x = DESIGN_WIDTH - 110;
-    const y = 160 + pairIndex * 125;
+    const y = 250 + pairIndex * 135;
     return { ax: x - 26, bx: x + 26, y, scale: 0.42 };
   }
 
@@ -242,7 +244,7 @@ export class MemoryScene extends BaseScene {
     if (card.item.id === this.firstPick.item.id) {
       const first = this.firstPick;
       this.firstPick = null;
-      first.highlight(false);
+      // collect() resets the scale/depth, so no need to un-highlight first.
       this.onPairMatched(first, card);
     }
     // Wrong pick in guided mode: nothing happens (keep the current selection).
@@ -435,9 +437,15 @@ class MemoryCard {
       .setOrigin(0.5);
 
     if (scene.textures.exists(item.id)) {
+      // The picture sits on a white card with an outline, so a face-up card
+      // reads as a proper card (not a floating cut-out).
+      const cardBg = scene.add
+        .rectangle(0, 0, size, size, 0xffffff)
+        .setStrokeStyle(8, 0x00897b)
+        .setVisible(false);
       const img = scene.add.image(0, 0, item.id).setVisible(false);
-      img.setScale((size * 0.92) / Math.max(img.width, img.height));
-      this.frontParts = [img];
+      img.setScale((size * 0.84) / Math.max(img.width, img.height));
+      this.frontParts = [cardBg, img];
     } else {
       const rect = scene.add
         .rectangle(0, 0, size, size, CATEGORY_COLOUR[item.category] ?? 0xcccccc)
@@ -496,13 +504,15 @@ class MemoryCard {
     this.visual.setScale(1);
   }
 
-  // Guided-mode selection cue.
+  // Guided-mode selection cue: grow a lot and lift above the other cards so the
+  // chosen card clearly stands out.
   highlight(on: boolean): void {
+    this.visual.setDepth(on ? 10 : 0);
     this.scene.tweens.add({
       targets: this.visual,
-      scale: on ? 1.08 : 1,
-      duration: 150,
-      ease: 'Sine.easeInOut',
+      scale: on ? 1.35 : 1,
+      duration: 180,
+      ease: 'Back.easeOut',
     });
   }
 
@@ -510,6 +520,7 @@ class MemoryCard {
   // little celebratory pop.
   collect(x: number, y: number, scale: number, onDone?: () => void): void {
     this.matched = true;
+    this.visual.setDepth(0);
     this.hit.disableInteractive();
     this.scene.tweens.add({
       targets: this.visual,
