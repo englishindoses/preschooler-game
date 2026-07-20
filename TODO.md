@@ -13,6 +13,9 @@ in `CHANGELOG.md`. British English.
 - [ ] **Parent area** + simple progress dashboard (behind a parental gate).
 - [ ] Make it an installable **PWA** (`vite-plugin-pwa`).
 - [ ] Reward / sticker system polish.
+- [ ] **Ask the child's name at the start** and use it to personalise later games —
+      especially **letter sounds**: e.g. "m for monkey, and m for Maria" if the child is
+      called Maria. (Store the name locally; fall back gracefully if not given.)
 - [ ] More shortlist games (Category Sorting, Colour Sorting, Habitats, Patterns, Sounds,
       Initial Sounds) — see Notion section 9.
 
