@@ -296,13 +296,18 @@ export class MemoryScene extends BaseScene {
     speak('Take a peek!');
 
     const unmatched = this.cards.filter((c) => !c.matched);
-    unmatched.forEach((c) => c.reveal());
+    // Flip the face-down cards up (animated), hold ~1s, then flip everything
+    // back down together.
+    unmatched.forEach((c) => {
+      if (!c.faceUp) c.flip(true);
+    });
+    const downDelay = 320 + 1000; // flip-up time + a 1s look
     let pending = unmatched.length;
     unmatched.forEach((c) =>
       c.flip(false, () => {
         pending -= 1;
         if (pending === 0) this.locked = false;
-      }, 1000),
+      }, downDelay),
     );
   }
 
@@ -311,10 +316,25 @@ export class MemoryScene extends BaseScene {
     this.matchedPairs += 1;
     this.matchesThisSet += 1;
     this.flipsSinceMatch = 0;
+    const isLast = this.matchedPairs >= this.totalPairs;
 
     this.mascot.setText('🎉');
     this.bigWord.setText(b.item.word);
-    speakSound(b.item.id, () => speak(`${praise()} ${b.item.word}!`));
+
+    // On the final pair, the big "Well done!" must wait for BOTH this pair's
+    // audio and its slide-to-the-side to finish, so nothing gets cut off.
+    let audioDone = false;
+    let animDone = false;
+    const maybeFinishSet = (): void => {
+      if (isLast && audioDone && animDone) this.onSetComplete();
+    };
+
+    speakSound(b.item.id, () =>
+      speak(`${praise()} ${b.item.word}!`, () => {
+        audioDone = true;
+        maybeFinishSet();
+      }),
+    );
 
     // Bring the pair together, big and side by side, so the child clearly sees
     // the match; hold a beat; then spin them away to their spot at the side.
@@ -330,23 +350,25 @@ export class MemoryScene extends BaseScene {
 
     const slot = this.collectedSlot(this.matchedPairs - 1);
     let pending = 2;
-    const done = (): void => {
+    const onSpun = (): void => {
       pending -= 1;
-      if (pending === 0) this.afterMatch();
+      if (pending !== 0) return;
+      if (isLast) {
+        animDone = true;
+        maybeFinishSet();
+      } else {
+        this.afterMatch();
+      }
     };
-    a.spinTo(slot.ax, slot.y, slot.scale, done, growMs + holdMs);
-    b.spinTo(slot.bx, slot.y, slot.scale, done, growMs + holdMs);
+    a.spinTo(slot.ax, slot.y, slot.scale, onSpun, growMs + holdMs);
+    b.spinTo(slot.bx, slot.y, slot.scale, onSpun, growMs + holdMs);
   }
 
   private afterMatch(): void {
     this.mascot.setText('🦒');
     this.firstPick = null;
-    if (this.matchedPairs >= this.totalPairs) {
-      this.onSetComplete();
-    } else {
-      this.bigWord.setText('');
-      this.locked = false;
-    }
+    this.bigWord.setText('');
+    this.locked = false;
   }
 
   private onSetComplete(): void {

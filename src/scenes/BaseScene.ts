@@ -47,9 +47,9 @@ export class BaseScene extends Phaser.Scene {
     }
   }
 
-  // Shared reward beat: a spinning gold star, then a pause, then onComplete.
-  // Drawn as a real 5-point star shape (not an emoji, which rendered clipped at
-  // the top and looked different across devices), centred so it always fits.
+  // Shared reward beat: a spinning gold star with a big explosion of stars all
+  // around it, then a pause, then onComplete. Drawn as a real 5-point star (not
+  // an emoji, which rendered clipped), centred so it always fits.
   protected showStar(onComplete: () => void): void {
     const cx = DESIGN_WIDTH / 2;
     const cy = DESIGN_HEIGHT / 2;
@@ -64,7 +64,11 @@ export class BaseScene extends Phaser.Scene {
       duration: 700,
       ease: 'Back.easeOut',
       onComplete: () => {
-        this.time.delayedCall(900, () => {
+        // Big exaggerated explosion around the star — kids love it — in waves.
+        this.starBurst(cx, cy, 30, 420);
+        this.time.delayedCall(220, () => this.starBurst(cx, cy, 24, 320));
+        this.time.delayedCall(460, () => this.starBurst(cx, cy, 20, 240));
+        this.time.delayedCall(1100, () => {
           star.destroy();
           onComplete();
         });
@@ -72,23 +76,25 @@ export class BaseScene extends Phaser.Scene {
     });
   }
 
-  // A quick outward burst of little stars at (x, y) — used to celebrate a
-  // correct answer / matched pair. Purely decorative; cleans itself up.
-  protected starBurst(x: number, y: number, count = 9): void {
+  // An outward explosion of little stars at (x, y) — used to celebrate a correct
+  // answer / matched pair. Bigger count/spread = a more dramatic burst. Purely
+  // decorative; cleans itself up.
+  protected starBurst(x: number, y: number, count = 14, spread = 170): void {
     for (let i = 0; i < count; i++) {
+      const outer = 10 + Math.random() * 14;
       const star = this.add
-        .star(x, y, 5, 6, 15, 0xffd23f)
+        .star(x, y, 5, outer * 0.45, outer, 0xffd23f)
         .setStrokeStyle(2, 0xf5a623)
         .setDepth(50);
       const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
-      const dist = 80 + Math.random() * 70;
+      const dist = spread * 0.5 + Math.random() * spread * 0.7;
       this.tweens.add({
         targets: star,
         x: x + Math.cos(angle) * dist,
         y: y + Math.sin(angle) * dist,
         scale: { from: 1, to: 0 },
-        angle: 200,
-        duration: 700,
+        angle: 200 + Math.random() * 180,
+        duration: 700 + Math.random() * 350,
         ease: 'Quad.easeOut',
         onComplete: () => star.destroy(),
       });
