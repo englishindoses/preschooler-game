@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { PROGRESSION } from '../core/content';
 import { Difficulty } from '../core/difficulty';
-import { speak, tryAgain, speakSound } from '../core/audio';
+import { speak, tryAgain, speakSound, isMuted, setMuted } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
@@ -94,11 +94,16 @@ export abstract class ChoiceGameScene extends BaseScene {
       .text(250, 120, '', { fontFamily: 'sans-serif', fontSize: '40px', color: '#2b2b2b' })
       .setOrigin(0, 0.5);
 
-    const replay = this.add
-      .text(DESIGN_WIDTH - 110, 110, '🔊', { fontSize: '72px' })
+    // Volume button toggles mute on/off.
+    const mute = this.add
+      .text(DESIGN_WIDTH - 110, 110, isMuted() ? '🔇' : '🔊', { fontSize: '72px' })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    replay.on('pointerdown', () => this.sayInstruction());
+    mute.on('pointerdown', () => {
+      const next = !isMuted();
+      setMuted(next);
+      mute.setText(next ? '🔇' : '🔊');
+    });
 
     // Big written word, centred at the top, so the child links word to picture.
     this.bigWord = this.add

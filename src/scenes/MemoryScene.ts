@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
 import { pickItems, shuffle } from '../core/content';
-import { speak, praise, speakSound } from '../core/audio';
+import { speak, praise, speakSound, isMuted, setMuted } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
 import type { Item } from '../data/types';
 
@@ -94,11 +94,16 @@ export class MemoryScene extends BaseScene {
 
     this.mascot = this.add.text(160, 120, '🦒', { fontSize: '96px' }).setOrigin(0.5);
 
-    const replay = this.add
-      .text(DESIGN_WIDTH - 110, 110, '🔊', { fontSize: '72px' })
+    // Volume button toggles mute on/off.
+    const mute = this.add
+      .text(DESIGN_WIDTH - 110, 110, isMuted() ? '🔇' : '🔊', { fontSize: '72px' })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    replay.on('pointerdown', () => this.sayInstruction());
+    mute.on('pointerdown', () => {
+      const next = !isMuted();
+      setMuted(next);
+      mute.setText(next ? '🔇' : '🔊');
+    });
 
     this.bigWord = this.add
       .text(DESIGN_WIDTH / 2, 64, '', {
@@ -116,19 +121,6 @@ export class MemoryScene extends BaseScene {
         color: '#5a7a4a',
       })
       .setOrigin(0, 1);
-  }
-
-  private sayInstruction(): void {
-    const cfg = LEVELS[this.level];
-    if (cfg.mode === 'guided') {
-      if (this.firstPick) {
-        speak(`Where's the other ${this.firstPick.item.word}?`);
-      } else {
-        speak('Tap a card.');
-      }
-    } else {
-      speak('Can you find the pairs?');
-    }
   }
 
   // --- Board setup ----------------------------------------------------------
@@ -160,17 +152,21 @@ export class MemoryScene extends BaseScene {
       // Cards stay face-up; the child is guided to each partner.
       this.cards.forEach((c) => c.reveal());
       this.locked = false;
-      speak('Find the matching pairs. Tap a card!');
+      speak('Look! Find the matching pairs.');
     } else if (cfg.peek) {
-      // Show the board for 2s, then flip everything down together.
+      // Show the board ("Look!") for 2s, then flip everything down together and
+      // ask the child to find the pairs.
       this.locked = true;
-      speak('Can you find the pairs?');
       this.cards.forEach((c) => c.reveal());
+      speak('Look!');
       let pending = this.cards.length;
       this.cards.forEach((c) =>
         c.flip(false, () => {
           pending -= 1;
-          if (pending === 0) this.locked = false;
+          if (pending === 0) {
+            this.locked = false;
+            speak('Can you find the pairs?');
+          }
         }, 2000),
       );
     } else {
@@ -259,6 +255,7 @@ export class MemoryScene extends BaseScene {
 
     if (!this.firstPick) {
       this.firstPick = card;
+      speak(`Where's the other ${card.item.word}?`);
       return;
     }
 
@@ -317,8 +314,19 @@ export class MemoryScene extends BaseScene {
 
     this.mascot.setText('🎉');
     this.bigWord.setText(b.item.word);
-    this.starBurst(b.x, b.y);
     speakSound(b.item.id, () => speak(`${praise()} ${b.item.word}!`));
+
+    // Bring the pair together, big and side by side, so the child clearly sees
+    // the match; hold a beat; then spin them away to their spot at the side.
+    const grow = 1.5;
+    const cx = (DESIGN_WIDTH - 200) / 2; // board-area centre (collected column is on the right)
+    const cy = 400;
+    const dx = a.size * grow * 0.62;
+    const growMs = 350;
+    const holdMs = 650;
+
+    a.growTo(cx - dx, cy, grow, growMs);
+    b.growTo(cx + dx, cy, grow, growMs, () => this.starBurst(cx, cy));
 
     const slot = this.collectedSlot(this.matchedPairs - 1);
     let pending = 2;
@@ -326,8 +334,8 @@ export class MemoryScene extends BaseScene {
       pending -= 1;
       if (pending === 0) this.afterMatch();
     };
-    a.collect(slot.ax, slot.y, slot.scale, done);
-    b.collect(slot.bx, slot.y, slot.scale, done);
+    a.spinTo(slot.ax, slot.y, slot.scale, done, growMs + holdMs);
+    b.spinTo(slot.bx, slot.y, slot.scale, done, growMs + holdMs);
   }
 
   private afterMatch(): void {
@@ -428,7 +436,7 @@ class MemoryCard {
     readonly item: Item,
     x: number,
     y: number,
-    size: number,
+    readonly size: number,
     onTap: (card: MemoryCard) => void,
   ) {
     this.back = scene.add.rectangle(0, 0, size, size, 0x00897b).setStrokeStyle(6, 0xffffff);
@@ -516,28 +524,42 @@ class MemoryCard {
     });
   }
 
-  // A matched pair: disable the card and glide it to its resting spot with a
-  // little celebratory pop.
-  collect(x: number, y: number, scale: number, onDone?: () => void): void {
+  // A matched pair moves in two beats: grow to a big position (side by side),
+  // then spin away to its resting spot at the side. beginCollect marks the card
+  // done and lifts it above the others.
+  private beginCollect(): void {
     this.matched = true;
-    this.visual.setDepth(0);
     this.hit.disableInteractive();
-    this.scene.tweens.add({
-      targets: this.visual,
-      scale: { from: 1, to: 1.15 },
-      duration: 160,
-      yoyo: true,
-      ease: 'Sine.easeInOut',
-    });
+    this.visual.setDepth(20);
+  }
+
+  growTo(x: number, y: number, scale: number, duration: number, onDone?: () => void): void {
+    if (!this.matched) this.beginCollect();
     this.scene.tweens.add({
       targets: this.visual,
       x,
       y,
       scale,
-      delay: 180,
-      duration: 430,
-      ease: 'Quad.easeInOut',
+      duration,
+      ease: 'Back.easeOut',
       onComplete: onDone,
+    });
+  }
+
+  spinTo(x: number, y: number, scale: number, onDone?: () => void, delay = 0): void {
+    this.scene.tweens.add({
+      targets: this.visual,
+      x,
+      y,
+      scale,
+      angle: '+=360',
+      delay,
+      duration: 550,
+      ease: 'Cubic.easeInOut',
+      onComplete: () => {
+        this.visual.setDepth(0);
+        onDone?.();
+      },
     });
   }
 

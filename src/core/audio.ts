@@ -11,6 +11,21 @@ export function unlockAudio(): void {
   unlocked = true;
 }
 
+// Global mute, toggled by the volume button and remembered between sessions.
+// When muted, speak()/speakSound() play nothing but still call onEnd (after a
+// short delay that mimics the spoken length) so game pacing is unchanged.
+let muted = localStorage.getItem('pg.muted') === '1';
+
+export function isMuted(): boolean {
+  return muted;
+}
+
+export function setMuted(value: boolean): void {
+  muted = value;
+  localStorage.setItem('pg.muted', value ? '1' : '0');
+  if (value) window.speechSynthesis?.cancel(); // stop anything mid-sentence
+}
+
 // Speaks the text. If onEnd is given, it fires once when the line finishes (so
 // callers can wait for the audio before moving on). onEnd is always eventually
 // called — even if speech is unavailable or errors — so game flow never stalls.
@@ -24,9 +39,10 @@ export function speak(text: string, onEnd?: () => void): void {
     onEnd?.();
   };
 
-  if (!unlocked || !synth) {
-    // No speech available: fall back to a short readable delay so flow continues.
-    if (onEnd) window.setTimeout(finish, 700);
+  if (muted || !unlocked || !synth) {
+    // No speech (muted / locked / unsupported): fall back to a readable delay so
+    // flow continues at roughly the pace the line would have taken.
+    if (onEnd) window.setTimeout(finish, muted ? Math.min(3000, 400 + text.length * 55) : 700);
     return;
   }
 
