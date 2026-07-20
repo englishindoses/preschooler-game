@@ -91,8 +91,22 @@ export class MemoryScene extends BaseScene {
     const deck = shuffle(chosen.flatMap((it) => [it, it]));
     this.layoutDeck(deck);
 
-    this.locked = false;
-    this.sayInstruction();
+    // Peek: show every card face-up for 2s so the child can study them, then
+    // flip them all face-down together. The hide uses each card's built-in flip
+    // tween delay (not a nested time.delayedCall, which is unreliable here).
+    this.locked = true;
+    speak('Remember where they are!');
+    this.cards.forEach((c) => c.reveal());
+    let pending = this.cards.length;
+    this.cards.forEach((c) =>
+      c.flip(false, () => {
+        pending -= 1;
+        if (pending === 0) {
+          this.locked = false;
+          this.sayInstruction();
+        }
+      }, 2000),
+    );
   }
 
   private layoutDeck(deck: Item[]): void {
@@ -287,6 +301,15 @@ class MemoryCard {
         });
       },
     });
+  }
+
+  // Instantly turn the card face-up with no animation (used for the opening
+  // peek, before the cards flip down together).
+  reveal(): void {
+    this.faceUp = true;
+    this.back.setVisible(false);
+    this.qMark.setVisible(false);
+    this.frontParts.forEach((p) => p.setVisible(true));
   }
 
   markMatched(): void {
