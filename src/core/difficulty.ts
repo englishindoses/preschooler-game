@@ -29,6 +29,17 @@ export class Difficulty {
     return this.levelIndex;
   }
 
+  // Jump straight to a level, outside the normal streak rules (e.g. passing
+  // Odd One Out's demo level promotes immediately). Resets the counters.
+  jumpTo(index: number): void {
+    this.levelIndex = clamp(index, 0, this.levelCount - 1);
+    this.streak = 0;
+    this.struggles = 0;
+    if (this.storageKey) {
+      localStorage.setItem(this.storageKey, String(this.levelIndex));
+    }
+  }
+
   // Call once when a round ends.
   recordRound(firstTryCorrect: boolean, neededHighlight: boolean): void {
     if (firstTryCorrect) {

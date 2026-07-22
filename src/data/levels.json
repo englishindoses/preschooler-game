@@ -17,9 +17,10 @@
   ],
 
   "odd_one_out": [
-    { "level": 1, "total": 3, "oddness": "far" },
-    { "level": 2, "total": 4, "oddness": "far" },
-    { "level": 3, "total": 4, "oddness": "near" }
+    { "level": 1, "total": 3, "oddness": "far", "demo": true },
+    { "level": 2, "total": 3, "oddness": "far" },
+    { "level": 3, "total": 4, "oddness": "far" },
+    { "level": 4, "total": 4, "oddness": "near" }
   ],
 
   "memory_pairs": [

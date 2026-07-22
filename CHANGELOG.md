@@ -3,6 +3,28 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-22 — Listen & Tap hunts everything; Odd One Out reworked
+
+**Changed — Listen & Tap**
+- A round no longer ends after one find: the child now finds **every animal on
+  the board**, asked for one at a time, before the round moves on. Found animals
+  stay out of their bush and can't be tapped again. Difficulty records once per
+  board (perfect board = first-try).
+
+**Changed — Odd One Out**
+- New round make-up: the board is **several copies of one item plus a single
+  different one** (all dogs and one elephant), instead of a mixed-category set.
+  The spoken reason is now "These are all dogs. The elephant is different!"
+- **Level 1 is a pre-game example**: Gigi asks "Watch me! Which one is
+  different?", picks the odd card itself (it lifts up with a burst of stars and
+  its word appears) and explains why. Then the child tries one ("Now you!") —
+  right first time goes **straight to level 2**; otherwise the example plays
+  again. Levels are now 1 demo · 2 (3 cards, far) · 3 (4, far) · 4 (4, near) —
+  "near" means the odd one is from the same category (a sheep among cows).
+- Engine support in `ChoiceGameScene`: multi-find rounds (`nextTarget`), demo
+  rounds (`RoundPlan.demo` + `runDemo`), per-set round counts, and
+  `Difficulty.jumpTo` for out-of-band level jumps.
+
 ## 2026-07-22 — Backgrounds fill the whole screen
 
 **Fixed**

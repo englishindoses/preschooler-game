@@ -24,6 +24,11 @@ export class ListenAndTapScene extends ChoiceGameScene {
   protected storageKey = 'pg.level.listen_and_tap';
   protected levelCount = LISTEN_LEVELS.length;
 
+  // The animals still to be found on this board, in asking order. The round
+  // only ends when every animal has been found (served one by one via
+  // nextTarget), so each board is a full hunt, not a single find.
+  private quarry: Item[] = [];
+
   constructor() {
     super('ListenAndTap');
   }
@@ -46,12 +51,29 @@ export class ListenAndTapScene extends ChoiceGameScene {
       category: level.distractorCategory === 'same' ? target.category : undefined,
     });
 
+    // Every animal on the board gets hunted; quarry is the asking order and
+    // the first one is the round's opening target.
+    const items = shuffle([target, ...distractors]);
+    this.quarry = shuffle(items);
+    const first = this.quarry.shift()!;
+
     return {
-      items: shuffle([target, ...distractors]),
-      target,
-      instruction: findPrompt(target.word),
-      parentLabel: target.word,
-      successLine: `${praise()} The ${target.word}!`,
+      items,
+      target: first,
+      instruction: findPrompt(first.word),
+      parentLabel: first.word,
+      successLine: `${praise()} The ${first.word}!`,
+    };
+  }
+
+  // After each find: the next animal to hunt, until the board is cleared.
+  protected nextTarget(): { target: Item; instruction: string; successLine: string } | null {
+    const next = this.quarry.shift();
+    if (!next) return null;
+    return {
+      target: next,
+      instruction: findPrompt(next.word),
+      successLine: `${praise()} The ${next.word}!`,
     };
   }
 

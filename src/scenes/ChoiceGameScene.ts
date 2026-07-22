@@ -38,6 +38,7 @@ export interface RoundPlan {
   instruction: string; // spoken at round start and on replay
   parentLabel: string; // small written text by the mascot (for the parent)
   successLine: string; // spoken when the child gets it right
+  demo?: boolean; // scripted example round: input stays locked, runDemo() plays it
 }
 
 // Shared engine for the "tap the right picture" games (Listen & Tap, Odd One
@@ -58,9 +59,13 @@ export abstract class ChoiceGameScene extends BaseScene {
   private roundIndex = 0;
   protected cards: Card[] = [];
   protected plan!: RoundPlan;
-  private wrongCount = 0;
-  private neededHighlight = false;
+  private wrongCount = 0; // wrong taps at the CURRENT target
+  private neededHighlight = false; // scaffold shown for the current target
+  private roundHadWrong = false; // any wrong tap this round (across all targets)
+  private roundNeededHighlight = false;
   private inputLocked = true;
+  private stopHighlight?: () => void; // kills the scaffold pulse, restores scale
+  private setLength = 0; // rounds in the current set, fixed when the set starts
 
   private mascot!: Phaser.GameObjects.Text;
   private wordLabel!: Phaser.GameObjects.Text;
@@ -132,6 +137,9 @@ export abstract class ChoiceGameScene extends BaseScene {
 
   private startSet(): void {
     this.roundIndex = 0;
+    // Fixed at set start: mid-set level changes (step-up, the demo level's
+    // jump) must not change how many rounds this set runs for.
+    this.setLength = this.roundsThisSet();
     this.nextRound();
   }
 
@@ -139,17 +147,76 @@ export abstract class ChoiceGameScene extends BaseScene {
     this.clearCards();
     this.wrongCount = 0;
     this.neededHighlight = false;
+    this.roundHadWrong = false;
+    this.roundNeededHighlight = false;
+    this.stopHighlight = undefined;
 
     this.plan = this.planRound(this.difficulty.index);
     this.levelText.setText(
-      `level ${this.difficulty.index + 1}  ·  round ${this.roundIndex + 1}/${PROGRESSION.roundsPerSet}`,
+      `level ${this.difficulty.index + 1}  ·  round ${this.roundIndex + 1}/${this.setLength}`,
     );
 
     this.layoutCards(this.plan.items);
     this.wordLabel.setText(this.plan.parentLabel);
     this.bigWord.setText(this.revealWordAtStart ? this.plan.target.word : '');
-    this.inputLocked = false;
-    this.sayInstruction();
+
+    if (this.plan.demo) {
+      this.inputLocked = true; // the mascot plays this one; the child watches
+      this.runDemo();
+    } else {
+      this.inputLocked = false;
+      this.sayInstruction();
+    }
+  }
+
+  // How many rounds make up the current set. A subclass can shorten a set
+  // (e.g. Odd One Out's demo level is just demo + one try).
+  protected roundsThisSet(): number {
+    return PROGRESSION.roundsPerSet;
+  }
+
+  // The round the set is on (0-based) — lets planRound tell a set's first
+  // round from the rest (Odd One Out's demo is round 0 of its level-1 set).
+  protected get round(): number {
+    return this.roundIndex;
+  }
+
+  // Demo rounds (plan.demo): the subclass scripts the example here and MUST end
+  // by calling finishDemoRound(). Input stays locked throughout.
+  protected runDemo(): void {
+    this.finishDemoRound();
+  }
+
+  protected finishDemoRound(): void {
+    this.advanceRound();
+  }
+
+  // Multi-find boards (Listen & Tap): the next thing to find on this board, or
+  // null when the board is done. Default: one target per round.
+  protected nextTarget(): { target: Item; instruction: string; successLine: string } | null {
+    return null;
+  }
+
+  // Round result → adaptive difficulty. A subclass can override to give a
+  // level special progression rules (e.g. Odd One Out's demo level).
+  protected recordProgress(firstTry: boolean, neededHighlight: boolean): void {
+    this.difficulty.recordRound(firstTry, neededHighlight);
+  }
+
+  // Reveals the target's word in the big top label (demo rounds name the odd
+  // one; normal rounds reveal it in handleCorrect).
+  protected showTargetWord(): void {
+    this.bigWord.setText(this.plan.target.word);
+  }
+
+  private advanceRound(): void {
+    this.mascot.setText('🦒');
+    this.roundIndex += 1;
+    if (this.roundIndex >= this.setLength) {
+      this.endSet();
+    } else {
+      this.nextRound();
+    }
   }
 
   private sayInstruction(): void {
@@ -247,32 +314,46 @@ export abstract class ChoiceGameScene extends BaseScene {
 
   private handleCorrect(card: Card): void {
     this.inputLocked = true;
-    const firstTry = this.wrongCount === 0;
     this.mascot.setText('🎉');
     // Reveal the word (Odd One Out had it hidden until now) so it's on screen
     // as the child hears it named.
     this.bigWord.setText(this.plan.target.word);
 
+    // Scaffold pulse off (and scale restored) BEFORE the win animation runs.
+    this.stopHighlight?.();
+    this.stopHighlight = undefined;
     this.onCorrectFeedback(card);
+    card.hit.disableInteractive(); // a found card can't be found again
 
     // Say the item's own sound (e.g. an animal noise) if it has one, then the
     // spoken praise; advance only once that has finished so it's never cut off.
     speakSound(this.plan.target.id, () => {
       speak(this.plan.successLine, () => {
-        this.difficulty.recordRound(firstTry, this.neededHighlight);
-        this.mascot.setText('🦒');
-        this.roundIndex += 1;
-        if (this.roundIndex >= PROGRESSION.roundsPerSet) {
-          this.endSet();
-        } else {
-          this.nextRound();
+        const next = this.nextTarget();
+        if (next) {
+          // Same board, new quarry (Listen & Tap finds every animal in turn).
+          this.plan.target = next.target;
+          this.plan.instruction = next.instruction;
+          this.plan.successLine = next.successLine;
+          this.plan.parentLabel = next.target.word;
+          this.wordLabel.setText(this.plan.parentLabel);
+          this.bigWord.setText(this.revealWordAtStart ? next.target.word : '');
+          this.wrongCount = 0;
+          this.neededHighlight = false;
+          this.mascot.setText('🦒');
+          this.inputLocked = false;
+          this.sayInstruction();
+          return;
         }
+        this.recordProgress(!this.roundHadWrong, this.roundNeededHighlight);
+        this.advanceRound();
       });
     });
   }
 
   private handleWrong(card: Card): void {
     this.wrongCount += 1;
+    this.roundHadWrong = true;
     this.mascot.setText('🤔');
     speak(tryAgain());
 
@@ -282,16 +363,25 @@ export abstract class ChoiceGameScene extends BaseScene {
     // After a 2nd miss, scaffold: pulse the correct answer so the child succeeds.
     if (this.wrongCount >= 2 && !this.neededHighlight) {
       this.neededHighlight = true;
+      this.roundNeededHighlight = true;
       const target = this.cards.find((c) => c.item.id === this.plan.target.id);
       if (target) {
-        this.tweens.add({
-          targets: target.sprite ? [target.sprite] : target.parts,
+        const targets = target.sprite ? [target.sprite] : target.parts;
+        const scales = targets.map((t) => t.scale);
+        const tween = this.tweens.add({
+          targets,
           scale: '*=1.12',
           duration: 500,
           yoyo: true,
           repeat: -1,
           ease: 'Sine.easeInOut',
         });
+        // Multi-find boards keep the cards, so the pulse must be stoppable
+        // (and the scale restored) once this target is found.
+        this.stopHighlight = () => {
+          tween.stop();
+          targets.forEach((t, i) => t.setScale(scales[i]));
+        };
       }
     }
   }

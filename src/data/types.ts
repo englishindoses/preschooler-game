@@ -26,6 +26,7 @@ export interface OddLevel {
   level: number;
   total: number;
   oddness: 'far' | 'near';
+  demo?: boolean; // level 1: the mascot demonstrates, then the child tries once
 }
 
 export interface MemoryLevel {
