@@ -3,6 +3,16 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-22 — Backgrounds fill the whole screen
+
+**Fixed**
+- Background art now covers the **entire screen on any device aspect ratio**, not
+  just the 1280×720 design box. Screens wider or taller than 16:9 (most modern
+  phones) previously showed plain green bars either side of the art.
+  `BaseScene` now scales the background to cover the camera's *visible* region
+  (viewport ÷ zoom, axes swapped in portrait) and re-fits it on every
+  resize/rotation.
+
 ## 2026-07-20 — Real background art
 
 **Added**

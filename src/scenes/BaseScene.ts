@@ -19,6 +19,10 @@ export const BG_FIELD = 'bg_field';
 export const BG_FARMYARD = 'bg_farmyard';
 
 export class BaseScene extends Phaser.Scene {
+  // The scene's background image (if any) — re-fitted on every resize so it
+  // always covers the whole screen, not just the 1280x720 design box.
+  private bg?: Phaser.GameObjects.Image;
+
   protected fitCamera(): void {
     const cam = this.cameras.main;
     const vw = this.scale.width;
@@ -37,6 +41,7 @@ export class BaseScene extends Phaser.Scene {
     }
 
     cam.centerOn(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2);
+    this.fitBackground();
   }
 
   // Scenes that extend BaseScene should call super.create() first, then build
@@ -46,6 +51,7 @@ export class BaseScene extends Phaser.Scene {
     this.scale.on('resize', this.fitCamera, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off('resize', this.fitCamera, this);
+      this.bg = undefined; // the image is destroyed with the scene's display list
     });
 
     // Dev-only: record the active scene so tests can verify navigation.
@@ -54,14 +60,28 @@ export class BaseScene extends Phaser.Scene {
     }
   }
 
-  // Paints one of the background images across the whole design space, behind
-  // everything else. Scaled to *cover* 1280x720 (so no gaps if the art's aspect
-  // ratio differs) and centred. If the image hasn't been added yet the scene
-  // just keeps the plain BG_COLOUR — nothing else has to change.
+  // Paints one of the background images behind everything else, scaled to
+  // *cover* the whole screen (not just the 1280x720 design box — screens wider
+  // or taller than 16:9 would otherwise show plain-colour bars around the art).
+  // Centred; re-fitted by fitCamera on every resize/rotation. If the image
+  // hasn't been added yet the scene just keeps the plain BG_COLOUR.
   protected addBackground(key: string): void {
     if (!this.textures.exists(key)) return;
-    const bg = this.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, key).setDepth(-100);
-    bg.setScale(Math.max(DESIGN_WIDTH / bg.width, DESIGN_HEIGHT / bg.height));
+    this.bg = this.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, key).setDepth(-100);
+    this.fitBackground();
+  }
+
+  // Scales the background so it fills everything the camera can see. The camera
+  // letterbox-fits the design space, so the visible region (in design units) is
+  // the viewport divided by the zoom — with the axes swapped when the camera is
+  // rotated for a portrait phone.
+  private fitBackground(): void {
+    if (!this.bg) return;
+    const cam = this.cameras.main;
+    const portrait = this.scale.height > this.scale.width;
+    const visW = (portrait ? this.scale.height : this.scale.width) / cam.zoom;
+    const visH = (portrait ? this.scale.width : this.scale.height) / cam.zoom;
+    this.bg.setScale(Math.max(visW / this.bg.width, visH / this.bg.height));
   }
 
   // Shared reward beat: a spinning gold star with a big explosion of stars all
