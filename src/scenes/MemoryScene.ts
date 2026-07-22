@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
+import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT, BG_FIELD } from './BaseScene';
 import { pickItems, shuffle } from '../core/content';
 import { speak, praise, speakSound, isMuted, setMuted } from '../core/audio';
 import { CATEGORY_COLOUR } from '../core/theme';
@@ -64,6 +64,7 @@ export class MemoryScene extends BaseScene {
 
   create(): void {
     super.create();
+    this.addBackground(BG_FIELD);
     this.loadLevel();
     this.buildHud();
     this.newSet();

@@ -1,4 +1,4 @@
-import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
+import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT, BG_FARMYARD } from './BaseScene';
 import { unlockAudio } from '../core/audio';
 
 // TEMPORARY placeholder Home. The real Home is a farm scene with picture-based
@@ -12,6 +12,9 @@ export class MenuScene extends BaseScene {
 
   create(): void {
     super.create();
+    // Home is the farmyard — a definite place to come back to. (The game
+    // screens use the neutral field instead; see BaseScene.)
+    this.addBackground(BG_FARMYARD);
 
     this.add
       .text(DESIGN_WIDTH / 2, 110, '🦒  Choose a game', {

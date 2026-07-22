@@ -145,7 +145,8 @@ Currently emoji/solid-colour placeholders. Replace with:
 
 | File name | Name | Description |
 |---|---|---|
-| `home_bg.png` | Home background | Friendly farm scene (landscape 1280×720) for the Home screen |
+| `farmyard_bg.png` ✅ | Farmyard background | Barn, farmhouse, yard (landscape ~1280×720). **Used by the Home screen.** |
+| `field_bg.png` ✅ | Field background | Open grassy field under sky (landscape ~1280×720). **Used by all three game screens** — neutral enough for farm *and* wild animals |
 | `activity_listen.png` | Listen & Tap icon | Picture button for the Listen & Tap game |
 | `activity_odd.png` | Odd One Out icon | Picture button for the Odd One Out game |
 | `activity_memory.png` | Memory icon | Picture button for the Memory game |
@@ -154,7 +155,9 @@ Currently emoji/solid-colour placeholders. Replace with:
 | `icon_replay.png` | Replay button | Speaker/replay icon |
 | `reward_star.png` | Reward star | Celebratory star/sticker for the reward beat |
 
-*(Optional later: a soft background for the in-game screens instead of the solid green.)*
+Backgrounds are the one image type that should **not** be transparent. Any new
+scene background goes in this folder with a descriptive name (`<place>_bg.png`)
+and is wired up in `PreloadScene` + `BaseScene` (`addBackground`).
 
 ---
 

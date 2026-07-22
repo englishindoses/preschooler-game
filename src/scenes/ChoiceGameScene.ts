@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
+import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT, BG_FIELD } from './BaseScene';
 import { PROGRESSION } from '../core/content';
 import { Difficulty } from '../core/difficulty';
 import { speak, tryAgain, speakSound, isMuted, setMuted } from '../core/audio';
@@ -76,9 +76,12 @@ export abstract class ChoiceGameScene extends BaseScene {
     this.installDevHooks();
   }
 
-  // Optional static background drawn once, behind the HUD and cards. Default is
-  // none; Find It (Listen & Tap) overrides this to paint the grassy scene.
-  protected buildBackground(): void {}
+  // Static background drawn once, behind the HUD and cards. The open field
+  // suits farm and wild animals alike, so both games use it; a subclass can
+  // override for a different setting.
+  protected buildBackground(): void {
+    this.addBackground(BG_FIELD);
+  }
 
   // --- HUD ------------------------------------------------------------------
 

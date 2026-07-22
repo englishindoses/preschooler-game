@@ -3,6 +3,20 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-20 — Real background art
+
+**Added**
+- Two painted backgrounds in `public/assets/images/ui/`, named after the place
+  they show: **`field_bg.png`** (open grassy field) and **`farmyard_bg.png`**
+  (barn + farmhouse).
+- **Field** is used by **all three game screens** — it's neutral, so it suits the
+  farm animals and the wild animals equally. **Farmyard** is the **Home** screen,
+  which shows no animals and can therefore be a definite place.
+- `BaseScene.addBackground(key)` scales the art to *cover* the 1280×720 design
+  space and sits it at depth −100. If an image is missing the scene falls back to
+  the plain green as before.
+- Listen & Tap's hand-drawn sky/grass rectangles are gone — it inherits the field.
+
 ## 2026-07-20 — Listen & Tap becomes a "Find the…" hidden-object game
 
 **Changed**

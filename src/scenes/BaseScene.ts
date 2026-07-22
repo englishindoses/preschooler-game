@@ -11,6 +11,13 @@ export const DESIGN_WIDTH = 1280;
 export const DESIGN_HEIGHT = 720;
 export const BG_COLOUR = '#bfe3b0';
 
+// Scene background art (public/assets/images/ui/). `field` is the neutral one —
+// an open grassy field that suits farm animals and wild animals alike, so every
+// game screen uses it. `farmyard` (barn + farmhouse) is the Home screen, which
+// shows no animals, so it can be a definite place.
+export const BG_FIELD = 'bg_field';
+export const BG_FARMYARD = 'bg_farmyard';
+
 export class BaseScene extends Phaser.Scene {
   protected fitCamera(): void {
     const cam = this.cameras.main;
@@ -45,6 +52,16 @@ export class BaseScene extends Phaser.Scene {
     if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) {
       (window as unknown as { __scene: string }).__scene = this.scene.key;
     }
+  }
+
+  // Paints one of the background images across the whole design space, behind
+  // everything else. Scaled to *cover* 1280x720 (so no gaps if the art's aspect
+  // ratio differs) and centred. If the image hasn't been added yet the scene
+  // just keeps the plain BG_COLOUR — nothing else has to change.
+  protected addBackground(key: string): void {
+    if (!this.textures.exists(key)) return;
+    const bg = this.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, key).setDepth(-100);
+    bg.setScale(Math.max(DESIGN_WIDTH / bg.width, DESIGN_HEIGHT / bg.height));
   }
 
   // Shared reward beat: a spinning gold star with a big explosion of stars all

@@ -55,16 +55,8 @@ export class ListenAndTapScene extends ChoiceGameScene {
     };
   }
 
-  // --- Grassy scene ---------------------------------------------------------
-
-  protected buildBackground(): void {
-    // A soft sky over a grassy field, so the bushes look like they sit on grass.
-    this.add.rectangle(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, DESIGN_WIDTH, DESIGN_HEIGHT, 0xd6f0ff);
-    const grassTop = DESIGN_HEIGHT * 0.42;
-    this.add
-      .rectangle(DESIGN_WIDTH / 2, grassTop, DESIGN_WIDTH, DESIGN_HEIGHT - grassTop, 0x8fce7a)
-      .setOrigin(0.5, 0);
-  }
+  // The field background comes from ChoiceGameScene — sky above, grass below,
+  // so the bushes look like they sit on grass.
 
   // --- Scattered, bush-hidden layout ---------------------------------------
 
