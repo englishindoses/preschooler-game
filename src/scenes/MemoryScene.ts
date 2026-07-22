@@ -181,13 +181,17 @@ export class MemoryScene extends BaseScene {
     const rows = 2;
     const cols = deck.length / rows;
     const gap = 30;
-    const usableW = DESIGN_WIDTH - 340; // leave room for the collected pairs
+    // Sizing still reserves the right-hand collected-pairs column so cards can
+    // never grow into it, but the grid itself is centred on the full width —
+    // at these sizes it clears the column anyway, and a centred board looks
+    // right (matching the other games) even while the column is empty.
+    const usableW = DESIGN_WIDTH - 340;
     const usableH = DESIGN_HEIGHT - 300;
     const size = Math.min((usableW - (cols - 1) * gap) / cols, (usableH - (rows - 1) * gap) / rows);
 
     const totalW = cols * size + (cols - 1) * gap;
     const totalH = rows * size + (rows - 1) * gap;
-    const startX = (DESIGN_WIDTH - 160 - totalW) / 2 + size / 2;
+    const startX = (DESIGN_WIDTH - totalW) / 2 + size / 2;
     const startY = 430 - totalH / 2 + size / 2;
 
     deck.forEach((item, i) => {
@@ -340,7 +344,7 @@ export class MemoryScene extends BaseScene {
     // Bring the pair together, big and side by side, so the child clearly sees
     // the match; hold a beat; then spin them away to their spot at the side.
     const grow = 1.5;
-    const cx = (DESIGN_WIDTH - 200) / 2; // board-area centre (collected column is on the right)
+    const cx = DESIGN_WIDTH / 2; // centred, like the board (clears the collected column)
     const cy = 400;
     const dx = a.size * grow * 0.62;
     const growMs = 350;
