@@ -112,10 +112,15 @@ export class ListenAndTapScene extends ChoiceGameScene {
   private makeHiddenCard(item: Item, x: number, y: number, size: number): Card {
     const parts: Card['parts'] = [];
 
+    // Depth grows with y so clumps lower on the screen draw in front of the
+    // row above — a popping animal must not vanish behind an upper bush.
+    // Scaled well below the star bursts (depth 50) in BaseScene.
+    const layer = y / 100;
+
     // The animal, drawn first so the bush (added next) sits in front of it.
     let sprite: Card['sprite'];
     if (this.textures.exists(item.id)) {
-      const img = this.add.image(x, y, item.id).setDepth(1);
+      const img = this.add.image(x, y, item.id).setDepth(layer);
       img.setScale(size / Math.max(img.width, img.height));
       sprite = img;
       parts.push(img);
@@ -125,13 +130,13 @@ export class ListenAndTapScene extends ChoiceGameScene {
       const label = this.add
         .text(0, 0, item.word, { fontFamily: 'sans-serif', fontSize: '34px', color: '#ffffff' })
         .setOrigin(0.5);
-      const box = this.add.container(x, y, [rect, label]).setDepth(1);
+      const box = this.add.container(x, y, [rect, label]).setDepth(layer);
       sprite = box;
       parts.push(box);
     }
 
     // Bush in front, covering the lower part of the animal.
-    const bush = this.makeBush(x, y + size * 0.32, size * 1.35).setDepth(2);
+    const bush = this.makeBush(x, y + size * 0.32, size * 1.35).setDepth(layer + 0.01);
     parts.push(bush);
     // Gentle rustle so the scene feels alive and invites a look.
     this.tweens.add({
@@ -149,7 +154,7 @@ export class ListenAndTapScene extends ChoiceGameScene {
     const hit = this.add
       .rectangle(x, y + size * 0.15, size * 1.2, size * 1.35, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-      .setDepth(3);
+      .setDepth(layer + 0.02);
     parts.push(hit);
 
     const card: Card = { hit, parts, item, sprite, baseY: y, riseBy: size * 0.8 };

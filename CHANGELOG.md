@@ -3,6 +3,13 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-23 — Listen & Tap: popping animals no longer hide behind upper bushes
+
+**Fixed — Listen & Tap**
+- An animal in a lower row popped out *behind* the bush of the row above it, so
+  the pop couldn't be seen. Each animal/bush clump now takes its draw depth from
+  its vertical position, so lower rows always render in front of the rows above.
+
 ## 2026-07-22 — Listen & Tap hunts everything; Odd One Out reworked
 
 **Changed — Listen & Tap**
