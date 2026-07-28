@@ -4,6 +4,7 @@ import { MenuScene } from './scenes/MenuScene';
 import { ListenAndTapScene } from './scenes/ListenAndTapScene';
 import { OddOneOutScene } from './scenes/OddOneOutScene';
 import { MemoryScene } from './scenes/MemoryScene';
+import { PatternsScene } from './scenes/PatternsScene';
 import { ParentsScene } from './scenes/ParentsScene';
 import { BG_COLOUR } from './scenes/BaseScene';
 import { installFullscreenLock } from './core/fullscreen';
@@ -33,7 +34,15 @@ const config: Phaser.Types.Core.GameConfig = {
     mipmapFilter: 'LINEAR_MIPMAP_LINEAR',
     antialias: true,
   },
-  scene: [PreloadScene, MenuScene, ListenAndTapScene, OddOneOutScene, MemoryScene, ParentsScene],
+  scene: [
+    PreloadScene,
+    MenuScene,
+    ListenAndTapScene,
+    OddOneOutScene,
+    MemoryScene,
+    PatternsScene,
+    ParentsScene,
+  ],
 };
 
 const game = new Phaser.Game(config);

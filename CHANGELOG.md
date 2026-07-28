@@ -3,6 +3,27 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-27 — New game: Patterns ("What comes next?")
+
+**Added — Patterns**
+- A fourth game, built on the shared `ChoiceGameScene`: a repeating strip of
+  pictures ends in an empty **"?" box** and the child taps the picture that comes
+  next. Correct → it drops into the box with stars, its word appears, and Gigi
+  says the pattern back ("cow, pig, cow, pig — so next is cow!").
+- **Level 1 is a worked example**, like Odd One Out: Gigi reads the pattern, hops
+  along it, picks the next one herself and explains; then the child tries one.
+  Right first time → straight to level 2.
+- Ladder: 1 AB *(example)* · 2 AB · 3 AB longer (3 choices) · 4 ABC · 5 AABB.
+  New `patterns` block in `levels.json`; `PatternLevel` in `types.ts`.
+- **Uses no new artwork** — the same 20 item pictures as the other games.
+- Home now has four buttons (slightly shorter); the grown-ups area gained a
+  level row for it.
+
+**Changed — shared engine**
+- `ChoiceGameScene.clearCards()` is now `protected`, so a game that draws extra
+  furniture beside the cards (the pattern strip) can clear it at the same time —
+  including at the reward beat, so nothing sits behind the star.
+
 ## 2026-07-23 — Listen & Tap: popping animals no longer hide behind upper bushes
 
 **Fixed — Listen & Tap**

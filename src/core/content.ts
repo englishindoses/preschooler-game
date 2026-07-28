@@ -1,6 +1,13 @@
 import itemsJson from '../data/items.json';
 import levelsJson from '../data/levels.json';
-import type { Item, Progression, ListenLevel, OddLevel, MemoryLevel } from '../data/types';
+import type {
+  Item,
+  Progression,
+  ListenLevel,
+  OddLevel,
+  MemoryLevel,
+  PatternLevel,
+} from '../data/types';
 
 // Loaded once from the JSON data files. Games read from these.
 export const ITEMS = itemsJson.items as Item[];
@@ -8,6 +15,7 @@ export const PROGRESSION = levelsJson.progression as Progression;
 export const LISTEN_LEVELS = levelsJson.listen_and_tap as ListenLevel[];
 export const ODD_LEVELS = levelsJson.odd_one_out as OddLevel[];
 export const MEMORY_LEVELS = levelsJson.memory_pairs as MemoryLevel[];
+export const PATTERN_LEVELS = levelsJson.patterns as PatternLevel[];
 
 export function shuffle<T>(arr: readonly T[]): T[] {
   const a = arr.slice();

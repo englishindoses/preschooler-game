@@ -23,6 +23,14 @@
     { "level": 4, "total": 4, "oddness": "near" }
   ],
 
+  "patterns": [
+    { "level": 1, "unit": "AB", "shown": 4, "choices": 2, "demo": true },
+    { "level": 2, "unit": "AB", "shown": 4, "choices": 2 },
+    { "level": 3, "unit": "AB", "shown": 5, "choices": 3 },
+    { "level": 4, "unit": "ABC", "shown": 5, "choices": 3 },
+    { "level": 5, "unit": "AABB", "shown": 5, "choices": 3 }
+  ],
+
   "memory_pairs": [
     { "level": 1, "pairs": 2, "matchType": "identical" },
     { "level": 2, "pairs": 3, "matchType": "identical" },

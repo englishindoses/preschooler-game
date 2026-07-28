@@ -5,7 +5,13 @@ in `CHANGELOG.md`. British English.
 
 ## Next up
 - [ ] Generate the real **assets** (see `design/asset-list.md`) — pictures + word clips first.
+- [ ] Build **Sound Match** ("who says that?") — no new images; needs the animal sound clips.
+- [ ] Build **Initial Sounds** ("what starts with mmm?") — no new images; needs an
+      `initialSound` field per item in `items.json`.
 - [ ] Build **Game #4 — Counting & Place** (introduces the drag-to-place engine + numeracy).
+
+## Done recently
+- [x] **Patterns — "What comes next?"** built (no new art; reuses the item pictures).
 
 ## Backlog (later)
 - [ ] Real **Home screen** (farm scene, picture-based choices) to replace the temporary menu.

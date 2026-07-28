@@ -271,7 +271,10 @@ export abstract class ChoiceGameScene extends BaseScene {
     return card;
   }
 
-  private clearCards(): void {
+  // Called before each round and at the reward beat. A subclass that draws extra
+  // furniture alongside the cards (Patterns' sequence strip) overrides this to
+  // clear that too, so nothing lingers behind the star.
+  protected clearCards(): void {
     this.cards.forEach((c) => c.parts.forEach((p) => p.destroy()));
     this.cards = [];
   }

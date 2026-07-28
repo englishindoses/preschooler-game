@@ -24,9 +24,10 @@ export class MenuScene extends BaseScene {
       })
       .setOrigin(0.5);
 
-    this.makeButton(DESIGN_WIDTH / 2, 280, 'Listen & Tap', 0x42a5f5, 'ListenAndTap');
-    this.makeButton(DESIGN_WIDTH / 2, 440, 'Odd One Out', 0x8bc34a, 'OddOneOut');
-    this.makeButton(DESIGN_WIDTH / 2, 600, 'Memory Pairs', 0xffa726, 'Memory');
+    this.makeButton(DESIGN_WIDTH / 2, 240, 'Listen & Tap', 0x42a5f5, 'ListenAndTap');
+    this.makeButton(DESIGN_WIDTH / 2, 360, 'Odd One Out', 0x8bc34a, 'OddOneOut');
+    this.makeButton(DESIGN_WIDTH / 2, 480, 'Memory Pairs', 0xffa726, 'Memory');
+    this.makeButton(DESIGN_WIDTH / 2, 600, 'What Comes Next?', 0xab47bc, 'Patterns');
 
     this.makeGrownupsGate();
   }
@@ -63,7 +64,7 @@ export class MenuScene extends BaseScene {
 
   private makeButton(x: number, y: number, label: string, colour: number, sceneKey: string): void {
     const w = 560;
-    const h = 130;
+    const h = 104;
     // The rectangle itself is the tap target — its own hit area lines up under a
     // zoomed/rotated camera, unlike a Container hit area.
     const rect = this.add

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BaseScene, DESIGN_WIDTH, DESIGN_HEIGHT } from './BaseScene';
-import { LISTEN_LEVELS, ODD_LEVELS } from '../core/content';
+import { LISTEN_LEVELS, ODD_LEVELS, PATTERN_LEVELS } from '../core/content';
 
 // Parent-only area (design/design.md §5.1), reached from Home behind a
 // press-and-hold gate so a young child can't open it by accident. It lets a
@@ -21,6 +21,7 @@ const GAMES: GameCfg[] = [
   { label: 'Listen & Tap', key: 'pg.level.listen_and_tap', levels: LISTEN_LEVELS.length, zeroBased: true },
   { label: 'Odd One Out', key: 'pg.level.odd_one_out', levels: ODD_LEVELS.length, zeroBased: true },
   { label: 'Memory Pairs', key: 'pg.level.memory_pairs', levels: 4, zeroBased: false },
+  { label: 'What Comes Next?', key: 'pg.level.patterns', levels: PATTERN_LEVELS.length, zeroBased: true },
 ];
 
 export class ParentsScene extends BaseScene {
@@ -50,7 +51,7 @@ export class ParentsScene extends BaseScene {
       })
       .setOrigin(0.5);
 
-    GAMES.forEach((game, i) => this.makeRow(game, 230 + i * 110));
+    GAMES.forEach((game, i) => this.makeRow(game, 215 + i * 98));
 
     this.status = this.add
       .text(DESIGN_WIDTH / 2, DESIGN_HEIGHT - 135, '', {

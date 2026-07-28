@@ -29,6 +29,17 @@ export interface OddLevel {
   demo?: boolean; // level 1: the mascot demonstrates, then the child tries once
 }
 
+// Patterns: `unit` is the repeating block written as letters (AB =
+// cow, pig, cow, pig…; AABB = cow, cow, pig, pig…). `shown` is how many items
+// are visible before the empty "?" slot; the answer is whatever comes next.
+export interface PatternLevel {
+  level: number;
+  unit: string;
+  shown: number;
+  choices: number;
+  demo?: boolean; // level 1: the mascot demonstrates, then the child tries once
+}
+
 export interface MemoryLevel {
   level: number;
   pairs: number;

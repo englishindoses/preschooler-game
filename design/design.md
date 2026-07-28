@@ -251,6 +251,27 @@ See the file for the concrete ladders.
 
 ---
 
+## 9a. Game — Patterns ("What comes next?")
+
+- **Screen:** a **pattern strip** across the middle — a repeating row of pictures ending in
+  an empty **"?" box** — and a row of **choice pictures** underneath.
+- **Play:** the mascot reads the pattern aloud ("cow, pig, cow, pig… what comes next?"); the
+  child taps the picture that continues it. Correct → the picture **drops into the empty
+  box** with a burst of stars, its word appears, its sound plays and the mascot says the
+  whole pattern back ("cow, pig, cow, pig — so next is cow!"). Two misses → the right
+  answer pulses (shared no-fail scaffold).
+- **Level 1 is a worked example** (same shape as Odd One Out): Gigi asks, hops along the
+  strip picture by picture, picks the next one herself and explains. Then the child tries
+  one — right first time → straight to level 2, otherwise the example plays again.
+- **Ladder:** L1 AB *(example)* → L2 AB, 2 choices → L3 AB longer, 3 choices → L4 ABC,
+  3 choices → L5 AABB, 3 choices. Data: `unit` (the repeating block as letters), `shown`
+  (pictures before the "?"), `choices`.
+- **Distractors:** the pattern's *other* picture(s) first — the meaningful wrong answers —
+  then unrelated items only if more are needed.
+- **Reuse:** ⭐⭐⭐ **no new art at all** — the same item pictures as every other game.
+
+---
+
 ## 10. Asset list (for the user to generate)
 
 Consistent, friendly, simple illustrations. Each image: **PNG, transparent background**,
