@@ -14,7 +14,7 @@ function plural(word: string): string {
 // ONE item plus a single different one (all dogs and one elephant); tap the odd
 // one. The mascot then says WHY, which is what makes it teach rather than test.
 //
-// Level 1 is a pre-game example: Gigi asks the question, picks the odd one
+// Level 1 is a pre-game example: Ziggy asks the question, picks the odd one
 // (so the child sees what "choosing" looks like) and explains that it's
 // different. Then the child tries one; right first time → straight to level 2,
 // otherwise the demo plays again.
@@ -63,7 +63,7 @@ export class OddOneOutScene extends ChoiceGameScene {
     };
   }
 
-  // The example round: Gigi asks, "chooses" the odd card — it lifts above the
+  // The example round: Ziggy asks, "chooses" the odd card — it lifts above the
   // rest with a burst of stars and its word appears — then explains why.
   protected runDemo(): void {
     const oddCard = this.cards.find((c) => c.item.id === this.plan.target.id);

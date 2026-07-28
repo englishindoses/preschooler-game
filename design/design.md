@@ -147,8 +147,10 @@ These three numbers (`stepUpStreak`, `stepDownStruggles`, `roundsPerSet`) live i
 
 ### 5.5 The mascot
 
-- A **giraffe** (gender-neutral; the user's daughter loves them). Working name **"Gigi"** —
-  placeholder, rename freely. Single point to change the name in code/data.
+- A **giraffe** (gender-neutral; the user's daughter loves them), named **"Ziggy"** —
+  chosen to be gender-neutral, easy for a 3-year-old to say, and not close to any word in
+  the item set (the vocabulary games say "pig", "cow", "dog"…, so a name that rhymed with
+  one would muddle them). Referred to as **they/them**.
 - **States** (each needs art + is triggered as noted): `idle`, `pointing` (demonstrates
   before the first round of a set), `celebrating` (correct / reward), `encouraging`
   (gentle "try again").
@@ -268,8 +270,8 @@ See the file for the concrete ladders.
   - **Tapped without dragging** → springs home and the mascot says "Drag it into the box!".
   - The drop target is deliberately **generous** (roughly a box-width in each direction) —
     a preschooler's aim is rough.
-- **Level 1 is a worked example** (same shape as Odd One Out): Gigi asks, hops along the
-  strip picture by picture, then **carries the next one over into the box herself** — which
+- **Level 1 is a worked example** (same shape as Odd One Out): Ziggy asks, hops along the
+  strip picture by picture, then **carries the next one over into the box themselves** — which
   also shows the child the drag they're being asked to make — and explains. Then the child
   tries one — right first time → straight to level 2, otherwise the example plays again.
 - **Ladder:** L1 AB *(example)* → L2 AB, 2 choices → L3 AB longer, 3 choices → L4 ABC,
@@ -298,7 +300,7 @@ For **each** item below: a **picture**, a **spoken word** clip, and (where noted
 - **Vehicles** (word + sound): tractor, car, bus
 - **Food** (word only, no sound): apple, carrot, banana
 
-### 10.2 Mascot (Gigi the giraffe)
+### 10.2 Mascot (Ziggy the giraffe)
 
 - Art for 4 states: `idle`, `pointing`, `celebrating`, `encouraging`.
 - Voice lines (British English):

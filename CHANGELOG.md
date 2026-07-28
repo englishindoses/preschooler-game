@@ -3,20 +3,32 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-28 — The mascot is now called Ziggy
+
+**Changed**
+- The giraffe is **Ziggy**, replacing the placeholder "Gigi". Gender-neutral,
+  two easy syllables for a 3-year-old, and deliberately unlike any word in the
+  item set — the vocabulary games say "pig", "cow", "dog"… a lot, so a name that
+  rhymed with one would muddle them (which is why "Pip" was ruled out).
+- The mascot is referred to as **they/them** throughout.
+- Mascot art filenames in `design/asset-list.md` are now `ziggy_*.png` (none of
+  that art has been generated yet, so nothing had to be renamed on disk). Earlier
+  changelog entries were updated too — it's the same character throughout.
+
 ## 2026-07-27 — New game: Patterns ("What comes next?")
 
 **Added — Patterns**
 - A fourth game, built on the shared `ChoiceGameScene`: a repeating strip of
   pictures ends in an empty **"?" box** and the child **drags** the picture that
   comes next into it. Right → it settles into the box with stars, its word
-  appears, and Gigi says the pattern back ("cow, pig, cow, pig — so next is
+  appears, and Ziggy says the pattern back ("cow, pig, cow, pig — so next is
   cow!"). Wrong → it springs back to the row with a wobble. Dropped anywhere
   else, or tapped without dragging, it just springs home and nothing is scored —
   a wandering finger never costs anything. The drop target is generous (about a
   box-width in each direction), since a preschooler's aim is rough.
 - This is the **first drag-to-place** game; Counting & Place will reuse it.
-- **Level 1 is a worked example**, like Odd One Out: Gigi reads the pattern, hops
-  along it, then carries the next picture over into the box herself — showing the
+- **Level 1 is a worked example**, like Odd One Out: Ziggy reads the pattern, hops
+  along it, then carries the next picture over into the box themselves — showing the
   child the drag — and explains; then the child tries one. Right first time →
   straight to level 2.
 - Ladder: 1 AB *(example)* · 2 AB · 3 AB longer (3 choices) · 4 ABC · 5 AABB.
@@ -50,7 +62,7 @@ A running record of notable changes. **Newest first.** British English.
 - New round make-up: the board is **several copies of one item plus a single
   different one** (all dogs and one elephant), instead of a mixed-category set.
   The spoken reason is now "These are all dogs. The elephant is different!"
-- **Level 1 is a pre-game example**: Gigi asks "Watch me! Which one is
+- **Level 1 is a pre-game example**: Ziggy asks "Watch me! Which one is
   different?", picks the odd card itself (it lifts up with a burst of stars and
   its word appears) and explains why. Then the child tries one ("Now you!") —
   right first time goes **straight to level 2**; otherwise the example plays

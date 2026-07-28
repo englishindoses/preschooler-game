@@ -41,8 +41,8 @@ const TAP_SLOP = 12; // a "drag" shorter than this was really just a tap
 // Reasoning practice, and it reuses the same item pictures as the other games
 // (no new art). It's also where the drag-to-place mechanic first appears.
 //
-// Like Odd One Out, level 1 is a worked example: Gigi reads the pattern out,
-// walks along it, picks the next one herself and says why. Then the child tries
+// Like Odd One Out, level 1 is a worked example: Ziggy reads the pattern out,
+// walks along it, picks the next one themselves and says why. Then the child tries
 // one; right first time → straight to level 2, otherwise the demo plays again.
 export class PatternsScene extends ChoiceGameScene {
   protected storageKey = 'pg.level.patterns';
@@ -315,8 +315,8 @@ export class PatternsScene extends ChoiceGameScene {
 
   // --- The worked example (level 1) ----------------------------------------
 
-  // Gigi reads the pattern, hops along it picture by picture, then carries the
-  // next one over into the box herself — which also shows the child the drag
+  // Ziggy reads the pattern, hops along it picture by picture, then carries the
+  // next one over into the box themselves — which also shows the child the drag
   // they're being asked to make — and explains. Timed with tween delays rather
   // than nested timers (see CLAUDE.md — a delayedCall from inside a timer
   // callback is unreliable here).
@@ -344,7 +344,7 @@ export class PatternsScene extends ChoiceGameScene {
           this.showTargetWord();
           if (answerCard) {
             this.starBurst(answerCard.hit.x, answerCard.hit.y);
-            // A slow glide, so it reads as Gigi carrying it over to the box.
+            // A slow glide, so it reads as Ziggy carrying it over to the box.
             this.snapIntoSlot(answerCard, 800);
           }
           speakSound(this.plan.target.id, () =>

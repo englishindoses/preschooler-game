@@ -95,16 +95,16 @@ Food and rabbit have **no** sound — skip those.
 
 ---
 
-## 4. Mascot — "Gigi" the giraffe  → `public/assets/images/mascot/`
+## 4. Mascot — "Ziggy" the giraffe  → `public/assets/images/mascot/`
 
 Gender-neutral, friendly giraffe. One consistent character in four poses.
 
 | File name | Name | Description |
 |---|---|---|
-| `gigi_idle.png` | Gigi idle | Standing, gentle smile, neutral |
-| `gigi_pointing.png` | Gigi pointing | Pointing/gesturing (demonstrates the task) |
-| `gigi_celebrating.png` | Gigi celebrating | Happy, arms/hooves up, cheering |
-| `gigi_encouraging.png` | Gigi encouraging | Warm, thoughtful "have another go" look |
+| `ziggy_idle.png` | Ziggy idle | Standing, gentle smile, neutral |
+| `ziggy_pointing.png` | Ziggy pointing | Pointing/gesturing (demonstrates the task) |
+| `ziggy_celebrating.png` | Ziggy celebrating | Happy, arms/hooves up, cheering |
+| `ziggy_encouraging.png` | Ziggy encouraging | Warm, thoughtful "have another go" look |
 
 ---
 
@@ -146,10 +146,11 @@ Currently emoji/solid-colour placeholders. Replace with:
 | File name | Name | Description |
 |---|---|---|
 | `farmyard_bg.png` ✅ | Farmyard background | Barn, farmhouse, yard (landscape ~1280×720). **Used by the Home screen.** |
-| `field_bg.png` ✅ | Field background | Open grassy field under sky (landscape ~1280×720). **Used by all three game screens** — neutral enough for farm *and* wild animals |
+| `field_bg.png` ✅ | Field background | Open grassy field under sky (landscape ~1280×720). **Used by every game screen** — neutral enough for farm *and* wild animals |
 | `activity_listen.png` | Listen & Tap icon | Picture button for the Listen & Tap game |
 | `activity_odd.png` | Odd One Out icon | Picture button for the Odd One Out game |
 | `activity_memory.png` | Memory icon | Picture button for the Memory game |
+| `activity_patterns.png` | Patterns icon | Picture button for the "What comes next?" game |
 | `card_back.png` | Card back | The face-down memory card design (one design, square) |
 | `icon_home.png` | Home button | House icon (return home) |
 | `icon_replay.png` | Replay button | Speaker/replay icon |
@@ -164,7 +165,7 @@ and is wired up in `PreloadScene` + `BaseScene` (`addBackground`).
 ## Summary counts
 - **19** item pictures · **19** word clips · **15** sound clips
 - **4** mascot poses · **~20** voice lines
-- **8** UI images
+- **9** UI images
 
 **Priority if generating in batches:** item pictures + word clips first (they power all
 three games), then sounds, then mascot poses, then UI art. The games run on placeholders

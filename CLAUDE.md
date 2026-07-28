@@ -46,16 +46,18 @@ Brainstorm ✅ · Choose ✅ · Tools/tech ✅ · **Now: design/build (Milestone
   callback did not fire reliably here — use a tween `delay` for sequenced timing instead
   (see `MemoryScene` flip-back).
 - **Games chosen (Milestone 1):** #1 Listen & Tap, #2 Odd One Out, #10 Memory/Pairs, on a
-  shared **farm/animal** theme. #4 Counting & Place is next (introduces drag-to-place).
+  shared **farm/animal** theme. **Patterns** ("What comes next?") has since been added —
+  it needs no new art and is where **drag-to-place** first appears (`PatternsScene`).
 - **Tech stack:** TypeScript + Phaser 3 + Vite; parent area as an HTML/CSS overlay;
   shipped later as a PWA via `vite-plugin-pwa`. No React/Pixi/Howler, no backend, no API
   keys. Full detail + rationale in `design/design.md §3`.
 - **Design spec:** `design/design.md` (framework, 3 games, asset list); data in
   `src/data/items.json` + `levels.json`.
-- **Mascot:** a **giraffe**, placeholder name "Gigi" (rename freely).
+- **Mascot:** a **giraffe** named **"Ziggy"** (gender-neutral; they/them). Chosen because
+  it's easy for a 3-year-old to say and sounds like nothing in the item set.
 
 ## Not yet decided
-Art style · final mascot name · phonics scheme (later games) · exact reward/sticker
+Art style · phonics scheme (later games) · exact reward/sticker
 visuals · hosting. Asset generation (images/audio) pending — spec is in `design.md §10`.
 
 ## Notes for future sessions
