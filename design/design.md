@@ -257,8 +257,13 @@ See the file for the concrete ladders.
 
 - **Screen:** a **pattern strip** across the middle — a repeating row of pictures ending in
   an empty **"?" box** — and a row of **choice pictures** underneath.
-- **Play:** the mascot reads the pattern aloud ("cow, pig, cow, pig… what comes next?"); the
-  child **drags** the picture that continues it into the empty box. This is the game's
+- **Reading the pattern:** the mascot names the pictures in order, and **each picture pops
+  — grows briefly and settles — exactly as its own word is spoken**, so the child hears
+  "cow" and sees which picture that is. To keep pop and voice in step whatever speed the
+  voice runs at, the line is spoken **one word at a time** (each word's end triggers the
+  next), never as one sentence with the pops on a timer.
+- **Play:** after the reading the mascot asks "what comes next?"; the child **drags** the
+  picture that continues the pattern into the empty box. This is the game's
   distinctive action, and the first appearance of the **drag-to-place** mechanic.
   - **Dropped on the box, correct** → it settles into the box at the box's size with a burst
     of stars, its word appears, its sound plays and the mascot says the whole pattern back

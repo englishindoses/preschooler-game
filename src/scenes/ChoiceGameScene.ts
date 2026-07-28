@@ -219,7 +219,10 @@ export abstract class ChoiceGameScene extends BaseScene {
     }
   }
 
-  private sayInstruction(): void {
+  // Speaks the round's instruction. A subclass can override to deliver it its own
+  // way — Patterns says the pattern one picture at a time, popping each picture
+  // as its word is spoken.
+  protected sayInstruction(): void {
     if (this.plan) speak(this.plan.instruction);
   }
 

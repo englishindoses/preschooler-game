@@ -3,6 +3,29 @@
 A running record of notable changes. **Newest first.** British English.
 (Small tweaks don't all need an entry — capture anything worth remembering later.)
 
+## 2026-07-28 — Patterns: each picture pops as it's named
+
+**Changed — Patterns**
+- While the pattern is read out, **each picture grows briefly and settles as its
+  own word is spoken** — so the child hears "cow" and sees exactly which picture
+  that is. It happens on every round now, not just the level 1 example.
+- The line is spoken **one word at a time** (each word's `onend` starts the
+  next) rather than as one sentence with the pops on a timer, so the pop can't
+  drift out of step with the voice however fast it speaks — which matters more
+  once recorded clips replace the browser voice.
+- A reading that gets overtaken — the child answers early, taps for the hint, or
+  the round ends — is **cancelled**, so the voice never carries on naming
+  pictures over the top of the praise. (Tracked by a sequence number, since a
+  cancelled utterance can still fire its `onend`.)
+- A popping picture lifts above its neighbours while it's big, since it grows
+  wider than its slot in the strip.
+- The example round now reads the pattern exactly the way the child will hear it
+  every round, then does the carry-into-the-box.
+
+**Changed — shared engine**
+- `ChoiceGameScene.sayInstruction()` is now `protected`, so a game can deliver
+  its instruction its own way.
+
 ## 2026-07-28 — The mascot is now called Ziggy
 
 **Changed**

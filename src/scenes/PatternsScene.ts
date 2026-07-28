@@ -32,7 +32,6 @@ interface Choice {
 const STRIP_Y = 300; // the pattern strip, under the HUD
 const CHOICE_Y = 570; // the row of pictures to choose from
 const CHOICE_SIZE = 200; // how big a choice picture is in that row
-const STEP_MS = 380; // how long the demo dwells on each tile of the strip
 const DRAG_LIFT = 1.12; // how much a picture grows while it's being carried
 const TAP_SLOP = 12; // a "drag" shorter than this was really just a tap
 
@@ -53,6 +52,9 @@ export class PatternsScene extends ChoiceGameScene {
 
   private sequence: Item[] = []; // the pictures shown before the "?" box
   private explainLine = ''; // "cow, pig, cow, pig — so next is cow!"
+  private leadIn = ''; // "Watch me!" / "Now you!" / nothing
+  private question = ''; // "What comes next?"
+  private readSeq = 0; // cancels a reading that's been overtaken (see readPattern)
   private stripParts: CardPart[] = []; // everything drawn for the strip
   private stripTiles: Tile[] = []; // just the pattern pictures (for the demo)
   private choices: Choice[] = []; // the draggable pictures and their home spots
@@ -95,15 +97,17 @@ export class PatternsScene extends ChoiceGameScene {
     const words = this.sequence.map((it) => it.word).join(', ');
     this.explainLine = `${words} — so next is ${answer.word}!`;
 
+    // The instruction is spoken in three pieces (see sayInstruction) so each
+    // picture can pop as its own word is said. `instruction` keeps the whole
+    // line for anything that wants it in one go.
     const isDemo = !!level.demo && this.round === 0;
+    this.leadIn = isDemo ? 'Watch me!' : level.demo ? 'Now you!' : '';
+    this.question = level.demo && !isDemo ? 'What comes next? Drag it into the box!' : 'What comes next?';
+
     return {
       items: shuffle(picks),
       target: answer,
-      instruction: isDemo
-        ? `Watch me! ${words}. What comes next?`
-        : level.demo
-          ? `Now you! ${words}. What comes next? Drag it into the box!`
-          : `${words}. What comes next?`,
+      instruction: `${this.leadIn} ${words}. ${this.question}`.trim(),
       parentLabel: 'what comes next?',
       successLine: `${praise()} ${this.explainLine}`,
       demo: isDemo,
@@ -163,6 +167,66 @@ export class PatternsScene extends ChoiceGameScene {
     );
   }
 
+  // --- Reading the pattern out ----------------------------------------------
+
+  // Each picture pops as its own word is spoken, so the child hears "cow" and
+  // sees exactly which picture that is. Said one word at a time (rather than as
+  // one sentence with the pops on a timer) so the pop can't drift out of step
+  // with the voice, whatever speed it speaks at.
+  protected sayInstruction(): void {
+    this.readPattern();
+  }
+
+  private readPattern(onDone?: () => void): void {
+    // A reading can be overtaken — by the child answering early, or by the round
+    // ending. Anything from an older reading is dropped.
+    const seq = ++this.readSeq;
+    const live = (): boolean => seq === this.readSeq;
+
+    const sayItem = (i: number): void => {
+      if (!live()) return;
+      if (i >= this.stripTiles.length) {
+        speak(this.question, () => {
+          if (live()) onDone?.();
+        });
+        return;
+      }
+      this.popTile(this.stripTiles[i]);
+      speak(this.stripTiles[i].item.word, () => sayItem(i + 1));
+    };
+
+    if (this.leadIn) {
+      speak(this.leadIn, () => sayItem(0));
+    } else {
+      sayItem(0);
+    }
+  }
+
+  // A quick "here I am" grow-and-settle on one picture in the strip. It lifts
+  // above its neighbours while it's big, since it grows wider than its slot.
+  private popTile(tile: Tile): void {
+    tile.parts.forEach((p) => p.setDepth(40));
+    this.tweens.add({
+      targets: tile.parts,
+      scale: '*=1.25',
+      duration: 170,
+      yoyo: true,
+      ease: 'Quad.easeOut',
+      onComplete: () => tile.parts.forEach((p) => p.setDepth(0)),
+    });
+  }
+
+  // Stops any reading in progress (the child has answered, or the round is over)
+  // so the voice doesn't carry on naming pictures over the top of it.
+  private stopReading(): void {
+    this.readSeq += 1;
+  }
+
+  protected onCardTap(card: Card): void {
+    this.stopReading();
+    super.onCardTap(card);
+  }
+
   // A non-interactive copy of a picture (or the coloured placeholder card).
   private makeTile(item: Item, x: number, y: number, size: number): Tile {
     if (this.textures.exists(item.id)) {
@@ -186,6 +250,7 @@ export class PatternsScene extends ChoiceGameScene {
   // the reward beat, so nothing sits behind the star).
   protected clearCards(): void {
     super.clearCards();
+    this.stopReading(); // the tiles it would pop are about to be destroyed
     this.stripParts.forEach((p) => p.destroy());
     this.stripParts = [];
     this.stripTiles = [];
@@ -234,6 +299,7 @@ export class PatternsScene extends ChoiceGameScene {
       const movement = Phaser.Math.Distance.Between(hit.x, hit.y, choice.homeX, choice.homeY);
       if (movement < TAP_SLOP) {
         // A tap, not a drag: show what to do instead of scoring it as an answer.
+        this.stopReading(); // don't carry on naming pictures over the hint
         this.sendHome(choice);
         speak('Drag it into the box!');
         return;
@@ -315,43 +381,22 @@ export class PatternsScene extends ChoiceGameScene {
 
   // --- The worked example (level 1) ----------------------------------------
 
-  // Ziggy reads the pattern, hops along it picture by picture, then carries the
-  // next one over into the box themselves — which also shows the child the drag
-  // they're being asked to make — and explains. Timed with tween delays rather
-  // than nested timers (see CLAUDE.md — a delayedCall from inside a timer
-  // callback is unreliable here).
+  // Ziggy reads the pattern the same way the child will hear it every round —
+  // each picture popping as it's named — then carries the next one over into the
+  // box themselves, which shows the child the drag they're being asked to make,
+  // and explains.
   protected runDemo(): void {
-    speak(this.plan.instruction, () => {
-      this.stripTiles.forEach((tile, i) => {
-        this.tweens.add({
-          targets: tile.parts,
-          scale: '*=1.18',
-          duration: 170,
-          yoyo: true,
-          delay: i * STEP_MS,
-          ease: 'Quad.easeOut',
-        });
-      });
-
-      // A zero-effect tween used purely to fire once the walk has finished.
+    this.readPattern(() => {
+      this.showTargetWord();
       const answerCard = this.cards.find((c) => c.item.id === this.plan.target.id);
-      this.tweens.add({
-        targets: this.slotMark ?? this.cards[0].hit,
-        alpha: 1,
-        duration: 1,
-        delay: this.stripTiles.length * STEP_MS + 250,
-        onComplete: () => {
-          this.showTargetWord();
-          if (answerCard) {
-            this.starBurst(answerCard.hit.x, answerCard.hit.y);
-            // A slow glide, so it reads as Ziggy carrying it over to the box.
-            this.snapIntoSlot(answerCard, 800);
-          }
-          speakSound(this.plan.target.id, () =>
-            speak(this.explainLine, () => this.finishDemoRound()),
-          );
-        },
-      });
+      if (answerCard) {
+        this.starBurst(answerCard.hit.x, answerCard.hit.y);
+        // A slow glide, so it reads as Ziggy carrying it over to the box.
+        this.snapIntoSlot(answerCard, 800);
+      }
+      speakSound(this.plan.target.id, () =>
+        speak(this.explainLine, () => this.finishDemoRound()),
+      );
     });
   }
 
