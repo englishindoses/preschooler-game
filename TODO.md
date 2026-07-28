@@ -8,10 +8,12 @@ in `CHANGELOG.md`. British English.
 - [ ] Build **Sound Match** ("who says that?") — no new images; needs the animal sound clips.
 - [ ] Build **Initial Sounds** ("what starts with mmm?") — no new images; needs an
       `initialSound` field per item in `items.json`.
-- [ ] Build **Game #4 — Counting & Place** (introduces the drag-to-place engine + numeracy).
+- [ ] Build **Game #4 — Counting & Place** (numeracy; can reuse the drag-to-place
+      handling from Patterns).
 
 ## Done recently
 - [x] **Patterns — "What comes next?"** built (no new art; reuses the item pictures).
+      Answering is **drag-to-place** — the first game to use it.
 
 ## Backlog (later)
 - [ ] Real **Home screen** (farm scene, picture-based choices) to replace the temporary menu.

@@ -256,13 +256,22 @@ See the file for the concrete ladders.
 - **Screen:** a **pattern strip** across the middle — a repeating row of pictures ending in
   an empty **"?" box** — and a row of **choice pictures** underneath.
 - **Play:** the mascot reads the pattern aloud ("cow, pig, cow, pig… what comes next?"); the
-  child taps the picture that continues it. Correct → the picture **drops into the empty
-  box** with a burst of stars, its word appears, its sound plays and the mascot says the
-  whole pattern back ("cow, pig, cow, pig — so next is cow!"). Two misses → the right
-  answer pulses (shared no-fail scaffold).
+  child **drags** the picture that continues it into the empty box. This is the game's
+  distinctive action, and the first appearance of the **drag-to-place** mechanic.
+  - **Dropped on the box, correct** → it settles into the box at the box's size with a burst
+    of stars, its word appears, its sound plays and the mascot says the whole pattern back
+    ("cow, pig, cow, pig — so next is cow!").
+  - **Dropped on the box, wrong** → it springs back to its place in the row with a wobble
+    and a warm nudge. Two misses → the right answer pulses (shared no-fail scaffold).
+  - **Dropped anywhere else** → it just springs home. Nothing is scored: a wandering finger
+    must never cost anything.
+  - **Tapped without dragging** → springs home and the mascot says "Drag it into the box!".
+  - The drop target is deliberately **generous** (roughly a box-width in each direction) —
+    a preschooler's aim is rough.
 - **Level 1 is a worked example** (same shape as Odd One Out): Gigi asks, hops along the
-  strip picture by picture, picks the next one herself and explains. Then the child tries
-  one — right first time → straight to level 2, otherwise the example plays again.
+  strip picture by picture, then **carries the next one over into the box herself** — which
+  also shows the child the drag they're being asked to make — and explains. Then the child
+  tries one — right first time → straight to level 2, otherwise the example plays again.
 - **Ladder:** L1 AB *(example)* → L2 AB, 2 choices → L3 AB longer, 3 choices → L4 ABC,
   3 choices → L5 AABB, 3 choices. Data: `unit` (the repeating block as letters), `shown`
   (pictures before the "?"), `choices`.

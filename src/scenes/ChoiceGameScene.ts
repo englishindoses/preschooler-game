@@ -63,7 +63,7 @@ export abstract class ChoiceGameScene extends BaseScene {
   private neededHighlight = false; // scaffold shown for the current target
   private roundHadWrong = false; // any wrong tap this round (across all targets)
   private roundNeededHighlight = false;
-  private inputLocked = true;
+  protected inputLocked = true;
   private stopHighlight?: () => void; // kills the scaffold pulse, restores scale
   private setLength = 0; // rounds in the current set, fixed when the set starts
 
